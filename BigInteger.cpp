@@ -13,37 +13,25 @@ unsigned long ulong_low(unsigned long x) {
 void BigInteger::reset() {
     m_data = IntegerData(1, 0ul);
 }
-void BigInteger::bitset_increment() {
-    if (m_positive or is_zero()) {
-        for (std::size_t i = 0; i < m_data.size(); i++) {
-            m_data[i]++;
-            if (m_data[i] != 0ul) break;
-        }
-        if (m_data.back() == 0ul) m_data.push_back(1ul);
+void BigInteger::bitset_increment(IntegerData& x) {
+    if (x.empty()) {
+        x = IntegerData(1, 1ul);
     }
-    else {
-        for (std::size_t i = 0; i < m_data.size(); i++) {
-            m_data[i]--;
-            if (m_data[i] != (unsigned long)(-1)) break;
-        }
+    for (std::size_t i = 0; i < x.size(); i++) {
+        x[i]++;
+        if (x[i] != 0ul) break;
     }
-    erase_leading_zeroes(m_data);
+    if (x.back() == 0ul) {
+        x.push_back(1ul);
+    }
+    erase_leading_zeroes(x);
 }
-void BigInteger::bitset_decrement() {
-    if (m_positive and !is_zero()) {
-        for (std::size_t i = 0; i < m_data.size(); i++) {
-            m_data[i]--;
-            if (m_data[i] != -1ul) break;
-        }
+void BigInteger::bitset_decrement(IntegerData& x) {
+    for (std::size_t i = 0; i < x.size(); i++) {
+        x[i]--;
+        if (x[i] != -1ul) break;
     }
-    else {
-        for (std::size_t i = 0; i < m_data.size(); i++) {
-            m_data[i]++;
-            if (m_data[i] != 0ul) break;
-        }
-        if (m_data.back() == 0ul) m_data.push_back(1ul);
-    }
-    erase_leading_zeroes(m_data);
+    erase_leading_zeroes(x);
 }
 
 void BigInteger::erase_leading_zeroes(IntegerData& x) {
@@ -121,26 +109,26 @@ void BigInteger::bitset_add(IntegerData& a, IntegerData const& b, std::size_t b_
         a.push_back(1ul);
     }
 }
-//Caution: only use if a is greater than b.
-void BigInteger::bitset_subtract(IntegerData& a, IntegerData const& b) {
+//Caution: only use if a is greater than b (with left shift considered)
+void BigInteger::bitset_subtract(IntegerData& a, IntegerData const& b, std::size_t b_left_shift) {
     if (bitset_is_zero(b)) {
         return;
     }
     bool borrow = false;
-    for (std::size_t i = 0; i < a.size(); i++) {
+    for (std::size_t i = b_left_shift; i < a.size(); i++) {
         bool new_borrow = false;
         if (borrow) {
             new_borrow = a[i] == 0ul;
             a[i]--;
         }
-        if (i < b.size()) {
-            new_borrow = a[i] < b[i];
+        if (i - b_left_shift < b.size()) {
+            new_borrow = a[i] < b[i - b_left_shift];
         }
         borrow = new_borrow;
-        if (i < b.size()) {
-            a[i] -= b[i];
+        if (i - b_left_shift < b.size()) {
+            a[i] -= b[i - b_left_shift];
         }
-        if (!borrow and i >= b.size()) break;
+        if (!borrow and i - b_left_shift >= b.size()) break;
     }
     erase_leading_zeroes(a);
 }
@@ -288,11 +276,60 @@ BigInteger::IntegerData BigInteger::karatsuba(
         return z_0;
     }
 }
+BigInteger::IntegerData BigInteger::bitset_divide(BigInteger::IntegerData& a, BigInteger::IntegerData const& b) {
+    if (bitset_is_zero(b)) {
+        throw std::domain_error("Division by zero.");
+    }
+    if (bitset_is_zero(a)) {
+        return IntegerData(1, 0ul);
+    }
+    static const IntegerData ONE = IntegerData(1, 1ul);
+    if (bitset_compare(ONE, b) == 0) {
+        return IntegerData(1, 0ul);
+    }
+    if (bitset_compare(a, b) < 0) {
+        IntegerData remainder = std::move(a);
+        a = IntegerData(1, 0ul);
+        return remainder;
+    }
+    IntegerData quotient(a.size());
+    for (std::size_t i = 1; i <= quotient.size(); i++) {
+        if (bitset_compare(a, b, quotient.size() - i) < 0) {
+            quotient[quotient.size() - i] = 0ul;
+            continue;
+        }
+        unsigned long q_digit_lower = 1ul;
+        unsigned long q_digit_upper = -1ul;
+        IntegerData q_digit_times_b_lower = b;
+        while (q_digit_upper - q_digit_lower > 1ul) {
+            unsigned long q_digit_middle = q_digit_lower + (q_digit_upper - q_digit_lower) / 2ul;
+            IntegerData q_digit_times_b = karatsuba(b.data(), b.size(), &q_digit_middle, 1);
+            int compare = bitset_compare(a, q_digit_times_b, quotient.size() - i);
+            if (compare < 0) {
+                q_digit_upper = q_digit_middle;
+            }
+            else if (compare > 0) {
+                q_digit_lower = q_digit_middle;
+                q_digit_times_b_lower = std::move(q_digit_times_b);
+            }
+            else {
+                q_digit_lower = q_digit_middle;
+                break;
+            }
+        }
+        quotient[quotient.size() - i] = q_digit_lower;
+        bitset_subtract(a, q_digit_times_b_lower, quotient.size() - i);
+    }
+    std::swap(quotient, a);
+    erase_leading_zeroes(a);
+    return quotient;
+}
+
 int BigInteger::bitset_compare(IntegerData const& a, IntegerData const& b, std::size_t b_left_shift) {
     std::size_t max_size = std::max(a.size(), b.size() + b_left_shift);
     for (std::size_t i = 1; i <= max_size; i++) {
         unsigned long a_digit = max_size < i + a.size() ? a[max_size - i] : 0ul;
-        unsigned long b_digit = max_size < i + b.size() + b_left_shift ? b[max_size - i - b_left_shift] : 0ul;
+        unsigned long b_digit = i + b_left_shift <= max_size and max_size < i + b.size() + b_left_shift ? b[max_size - i - b_left_shift] : 0ul;
         if (a_digit < b_digit) return -1;
         if (a_digit > b_digit) return 1;
     } 
@@ -378,19 +415,55 @@ BigInteger& BigInteger::operator=(std::string const& str) {
 }
 //Increment/Decrement Operators
 BigInteger& BigInteger::operator++() {
-    bitset_increment();
+    if (is_zero()) {
+        m_data = IntegerData(1, 1ul);
+        m_positive = true;
+    }
+    else if (is_positive()) {
+        bitset_increment(m_data);
+    }
+    else {
+        bitset_decrement(m_data);
+    }
     return *this;
 }
 BigInteger& BigInteger::operator++(int) {
-    bitset_increment();
+    if (is_zero()) {
+        m_data = IntegerData(1, 1ul);
+        m_positive = true;
+    }
+    else if (is_positive()) {
+        bitset_increment(m_data);
+    }
+    else {
+        bitset_decrement(m_data);
+    }
     return *this;
 }
 BigInteger& BigInteger::operator--() {
-    bitset_decrement();
+    if (is_zero()) {
+        m_data = IntegerData(1, 1ul);
+        m_positive = false;
+    }
+    else if (is_positive()) {
+        bitset_decrement(m_data);
+    }
+    else {
+        bitset_increment(m_data);
+    }
     return *this;
 }
 BigInteger& BigInteger::operator--(int) {
-    bitset_decrement();
+    if (is_zero()) {
+        m_data = IntegerData(1, 1ul);
+        m_positive = false;
+    }
+    else if (is_positive()) {
+        bitset_decrement(m_data);
+    }
+    else {
+        bitset_increment(m_data);
+    }
     return *this;
 }
 //Arithmetic Operators
@@ -453,6 +526,28 @@ BigInteger& BigInteger::operator*=(BigInteger const& y) {
     return *this;
 }
 
+BigInteger& BigInteger::operator/=(BigInteger const& y) {
+    bitset_divide(m_data, y.m_data);
+    if (is_negative()) {
+        bitset_increment(m_data);
+    }
+    m_positive = m_positive == y.m_positive;
+    return *this;
+}
+
+BigInteger& BigInteger::operator%=(BigInteger const& y) {
+    if (is_positive()) {
+        m_data = bitset_divide(m_data, y.m_data);
+    }
+    else if (!is_zero()) {
+        IntegerData x = bitset_divide(m_data, y.m_data);
+        m_data = y.m_data;
+        bitset_subtract(m_data, x);
+    }
+    m_positive = true;
+    return *this;
+}
+
 BigInteger BigInteger::operator+(BigInteger const& y) const {
     BigInteger rtrn_v = *this;
     rtrn_v += y;
@@ -468,6 +563,18 @@ BigInteger BigInteger::operator-(BigInteger const& y) const {
 BigInteger BigInteger::operator*(BigInteger const& y) const {
     BigInteger rtrn_v = *this;
     rtrn_v *= y;
+    return rtrn_v;
+}
+
+BigInteger BigInteger::operator/(BigInteger const& y) const {
+    BigInteger rtrn_v = *this;
+    rtrn_v /= y;
+    return rtrn_v;
+}
+
+BigInteger BigInteger::operator%(BigInteger const& y) const {
+    BigInteger rtrn_v = *this;
+    rtrn_v %= y;
     return rtrn_v;
 }
 

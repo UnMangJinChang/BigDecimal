@@ -20,17 +20,18 @@ private:
     IntegerData m_data;
 
     void reset();
-    void bitset_increment();
-    void bitset_decrement();
     void negate();
 
     static void erase_leading_zeroes(IntegerData& x);
     static bool bitset_is_zero(IntegerData const& x);
+    static void bitset_increment(IntegerData& x);
+    static void bitset_decrement(IntegerData& x);
     static void bitset_shift_left(IntegerData& x, std::size_t n);
     static void bitset_shift_right(IntegerData& x, std::size_t n);
     static void bitset_add(IntegerData& a, IntegerData const& b, std::size_t b_left_shift = 0);
-    static void bitset_subtract(IntegerData& a, IntegerData const& b);
+    static void bitset_subtract(IntegerData& a, IntegerData const& b, std::size_t b_left_shift = 0);
     static void bitset_multiply(IntegerData& a, IntegerData const& b);
+    static IntegerData bitset_divide(IntegerData& a, IntegerData const& b);
     static unsigned long bitset_divide_10(IntegerData& a);
     static IntegerData karatsuba(
         unsigned long const* a, std::size_t len_a, 
@@ -51,6 +52,7 @@ public:
     BigInteger& operator-=(BigInteger const& x);
     BigInteger& operator*=(BigInteger const& x);
     BigInteger& operator/=(BigInteger const& x);
+    BigInteger& operator%=(BigInteger const& x);
     BigInteger& operator++();
     BigInteger& operator++(int);
     BigInteger& operator--();
@@ -71,6 +73,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, BigInteger const& x);
     friend std::istream& operator>>(std::istream& is, BigInteger& x);
+
 
     bool is_negative() const;
     bool is_zero() const;
