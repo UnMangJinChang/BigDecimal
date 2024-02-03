@@ -32,6 +32,28 @@ int main() {
             << "    Average execution time: " << (finish - start) / test_case_count << "\n";
     }
     test_cases.close();
+    test_cases.open("mul_test.txt");
+    start = std::chrono::system_clock::now();
+    while (test_cases >> x >> y >> answer_1) {
+        BigInteger int_x(x), int_y(y);
+        BigInteger response = (int_x * int_y);
+        if (response != answer_1) {
+            std::cout << "Test case failed!\n"
+                << "answer = " << answer_1 << ", but\n"
+                << "x * y  = " << response << ".\n"
+                << "x     = " << x << "\n"
+                << "y     = " << y << "\n";
+            test_success = true;
+            break;
+        }
+        test_case_count++;
+    }
+    finish = std::chrono::system_clock::now();
+    if (test_success) {
+        std::cout << "Multiplication test passed: \n"
+            << "    Average execution time: " << (finish - start) / test_case_count << "\n";
+    }
+    test_cases.close();
     test_cases.open("div_test.txt");
     test_case_count = 0;
     test_success = true;

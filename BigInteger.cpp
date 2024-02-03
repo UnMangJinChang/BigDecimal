@@ -527,9 +527,12 @@ BigInteger& BigInteger::operator*=(BigInteger const& y) {
 }
 
 BigInteger& BigInteger::operator/=(BigInteger const& y) {
-    bitset_divide(m_data, y.m_data);
     if (is_negative()) {
+        bitset_divide(m_data, y.m_data);
         bitset_increment(m_data);
+    }
+    else {
+        bitset_divide(m_data, y.m_data);
     }
     m_positive = m_positive == y.m_positive;
     return *this;
