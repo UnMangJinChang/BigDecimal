@@ -40,6 +40,7 @@ private:
     static int bitset_compare(IntegerData const& a, IntegerData const& b, std::size_t b_left_shift = 0);
     
     void from_string(std::string const& number_string);
+    void from_string(char const* c_number_string);
 public:
     BigInteger();
     BigInteger(char const* c_string);

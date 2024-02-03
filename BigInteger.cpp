@@ -361,6 +361,17 @@ void BigInteger::from_string(std::string const& input) {
         bitset_add(m_data, digit);
     }
 }
+//Takes only not signed positive number strings.
+void BigInteger::from_string(char const* input) {
+    reset();
+    IntegerData ten(1, 10ul);
+    for (auto it = input; *it != '\0'; it++) {
+        m_data = karatsuba(m_data.data(), m_data.size(), ten.data(), 1);
+        IntegerData digit(1, static_cast<unsigned long>(*it - '0'));
+        bitset_add(m_data, digit);
+    }
+}
+
 
 BigInteger::BigInteger() {
     reset();
@@ -408,7 +419,7 @@ BigInteger& BigInteger::operator=(std::string const& str) {
         m_positive = true;
     }
     else {
-        from_string(str.substr(1));
+        from_string(str.data() + 1);
         m_positive = str[0] == '+';
     }
     return *this;
@@ -691,7 +702,7 @@ std::istream &operator>>(std::istream &is, BigInteger &x)
             x.m_positive = true;
         }
         else {
-            x.from_string(input.substr(1));
+            x.from_string(input.data() + 1);
             x.m_positive = input[0] == '+';
         }
     }
