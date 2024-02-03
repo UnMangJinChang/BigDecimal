@@ -171,7 +171,7 @@ BigInteger::IntegerData BigInteger::karatsuba(
         return IntegerData(1, 0ul);
     }
     //Base case
-    constexpr std::size_t BASE_CASE_SIZE = 16;
+    constexpr std::size_t BASE_CASE_SIZE = 128;
     if (len_a <= BASE_CASE_SIZE and len_b <= BASE_CASE_SIZE) {
         constexpr std::size_t HALF_BITS = ULONG_BITS / 2;
         IntegerData return_value(1, 0ul);
