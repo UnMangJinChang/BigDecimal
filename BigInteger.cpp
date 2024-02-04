@@ -2,6 +2,7 @@
 
 constexpr std::size_t CHAR_BITS = std::numeric_limits<unsigned char>::digits;
 constexpr std::size_t ULONG_BITS = sizeof(unsigned long) * CHAR_BITS;
+static std::regex BIG_INTEGER_REGEX = std::regex("^[+-]?[0-9]+$");
 
 unsigned long ulong_high(unsigned long x) {
     return x >> (ULONG_BITS / 2);
@@ -372,7 +373,7 @@ BigInteger::BigInteger() {
     reset();
 }
 BigInteger::BigInteger(char const* c_str) {
-    if (!std::regex_match(c_str, std::regex("^[+-]?[0-9]+$"))) return; 
+    if (!std::regex_match(c_str, BIG_INTEGER_REGEX)) return; 
     if (c_str[0] != '+' and c_str[0] != '-') {
         from_string(c_str);
         m_positive = true;
@@ -383,7 +384,7 @@ BigInteger::BigInteger(char const* c_str) {
     }
 }
 BigInteger::BigInteger(std::string const& str) {
-    if (!std::regex_match(str, std::regex("^[+-]?[0-9]+$"))) return;
+    if (!std::regex_match(str, BIG_INTEGER_REGEX)) return;
     if (str[0] != '+' and str[0] != '-') {
         from_string(str);
         m_positive = true;
@@ -691,7 +692,7 @@ std::istream &operator>>(std::istream &is, BigInteger &x)
 {
     std::string input;
     is >> input;
-    if (!std::regex_match(input, std::regex("^[+-]?[0-9]+$"))) {
+    if (!std::regex_match(input, BIG_INTEGER_REGEX)) {
         is.setstate(std::ios::failbit);
     }
     else {
@@ -709,4 +710,46 @@ std::istream &operator>>(std::istream &is, BigInteger &x)
 
 BigInteger::IntegerData const& BigInteger::get_data() const {
     return m_data;
+}
+
+BigInteger BigInteger::pow(BigInteger const &x, std::size_t y)
+{
+    if (y == 0) {
+        return "1";
+    }
+    if (y == 1) {
+        return x;
+    }
+    if (y == 2) {
+        return x * x;
+    }
+    if (y == 3) {
+        return x * x * x;
+    }
+    BigInteger half_pow = pow(x, y / 2);
+    if (y % 2 == 0) {
+        return half_pow * half_pow;
+    }
+    else {
+        return half_pow * half_pow * x;
+    }
+}
+
+BigInteger BigInteger::div(BigInteger const& y) {
+    bool x_was_negative = this->is_negative();
+    IntegerData absolute_remainder = bitset_divide(m_data, y.m_data);
+    if (!bitset_is_zero(absolute_remainder) and x_was_negative) {
+        BigInteger result;
+        result.m_data = y.m_data;
+        bitset_subtract(result.m_data, absolute_remainder);
+        bitset_increment(m_data);
+        result.m_positive = true;
+        return result;
+    }
+    else {
+        BigInteger result;
+        result.m_data = std::move(absolute_remainder);
+        result.m_positive = true;
+        return result;
+    }
 }

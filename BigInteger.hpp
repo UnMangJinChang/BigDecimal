@@ -75,13 +75,15 @@ public:
     friend std::ostream& operator<<(std::ostream& os, BigInteger const& x);
     friend std::istream& operator>>(std::istream& is, BigInteger& x);
 
-
     bool is_negative() const;
     bool is_zero() const;
     bool is_positive() const;
 
     IntegerData const& get_data() const;
     std::string to_string() const;
+
+    static BigInteger pow(BigInteger const& x, std::size_t n);
+    BigInteger div(BigInteger const& y);
 };
 
 #endif

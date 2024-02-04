@@ -60,8 +60,8 @@ int main() {
     start = std::chrono::system_clock::now();
     while (test_cases >> x >> y >> answer_1 >> answer_2) {
         BigInteger int_x(x), int_y(y);
-        BigInteger response_1 = int_x / int_y;
-        BigInteger response_2 = int_x % int_y;
+        BigInteger response_1 = int_x;
+        BigInteger response_2 = response_1.div(int_y);
         if (response_1 != answer_1 or response_2 != answer_2) {
             std::cout << "Test case failed!\n"
                 << "answer_1 = " << answer_1 << " and \n" 
