@@ -40,7 +40,6 @@ void BigInteger::erase_leading_zeroes(IntegerData& x) {
     }
 }
 bool BigInteger::bitset_is_zero(IntegerData const& x) {
-    if (x.empty()) return true;
     return std::count(x.begin(), x.end(), 0ul) == x.size();
 }
 
@@ -308,13 +307,9 @@ BigInteger::IntegerData BigInteger::bitset_divide(BigInteger::IntegerData& a, Bi
             if (compare < 0) {
                 q_digit_upper = q_digit_middle;
             }
-            else if (compare > 0) {
-                q_digit_lower = q_digit_middle;
-                q_digit_times_b_lower = std::move(q_digit_times_b);
-            }
             else {
                 q_digit_lower = q_digit_middle;
-                break;
+                q_digit_times_b_lower = std::move(q_digit_times_b);
             }
         }
         quotient[quotient.size() - i] = q_digit_lower;
@@ -539,8 +534,9 @@ BigInteger& BigInteger::operator*=(BigInteger const& y) {
 
 BigInteger& BigInteger::operator/=(BigInteger const& y) {
     if (is_negative()) {
-        bitset_divide(m_data, y.m_data);
-        bitset_increment(m_data);
+        if (!bitset_is_zero(bitset_divide(m_data, y.m_data))) {
+            bitset_increment(m_data);
+        }
     }
     else {
         bitset_divide(m_data, y.m_data);
@@ -550,13 +546,15 @@ BigInteger& BigInteger::operator/=(BigInteger const& y) {
 }
 
 BigInteger& BigInteger::operator%=(BigInteger const& y) {
-    if (is_positive()) {
-        m_data = bitset_divide(m_data, y.m_data);
-    }
-    else if (!is_zero()) {
-        IntegerData x = bitset_divide(m_data, y.m_data);
+    bool x_was_negative = this->is_negative();
+    IntegerData absolute_remainder = bitset_divide(this->m_data, y.m_data);
+    bool remainder_is_zero = bitset_is_zero(absolute_remainder);
+    if (!remainder_is_zero and x_was_negative) {
         m_data = y.m_data;
-        bitset_subtract(m_data, x);
+        bitset_subtract(m_data, absolute_remainder);
+    }
+    else {
+        m_data = std::move(absolute_remainder);
     }
     m_positive = true;
     return *this;
