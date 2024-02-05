@@ -3,9 +3,9 @@
 namespace umjc {
 std::size_t BigDecimal::m_significant_digits = 128;
 
-static std::regex const BIG_DECIMAL_REGEX_1 = std::regex("^[+\\-]?[0-9]+.[0-9]+$");
+static std::regex const BIG_DECIMAL_REGEX_1 = std::regex("^[+\\-]?[0-9]+\\.[0-9]+$");
 static std::regex const BIG_DECIMAL_REGEX_2 = std::regex("^[+\\-]?.[0-9]+$");
-static std::regex const BIG_DECIMAL_REGEX_3 = std::regex("^[+\\-]?[0-9]+.?$");
+static std::regex const BIG_DECIMAL_REGEX_3 = std::regex("^[+\\-]?[0-9]+\\.?$");
 
 void BigDecimal::reduce_integer() const {
     std::size_t integer_digits = m_integer.get_decimal_digits();
