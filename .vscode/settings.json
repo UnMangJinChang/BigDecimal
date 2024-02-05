@@ -66,6 +66,8 @@
         "__hash_table": "cpp",
         "__tree": "cpp",
         "__split_buffer": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "__bit_reference": "cpp",
+        "filesystem": "cpp"
     }
 }

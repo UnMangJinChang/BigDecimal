@@ -4,6 +4,19 @@ constexpr std::size_t CHAR_BITS = std::numeric_limits<unsigned char>::digits;
 constexpr std::size_t ULONG_BITS = sizeof(unsigned long) * CHAR_BITS;
 static std::regex BIG_INTEGER_REGEX = std::regex("^[+-]?[0-9]+$");
 
+namespace umjc {
+static BigInteger const BIG_INTEGER_ZERO("0");
+static BigInteger const BIG_INTEGER_ONE("1");
+static BigInteger const BIG_INTEGER_TWO("2");
+static BigInteger const BIG_INTEGER_THREE("3");
+static BigInteger const BIG_INTEGER_FOUR("4");
+static BigInteger const BIG_INTEGER_FIVE("5");
+static BigInteger const BIG_INTEGER_SIX("6");
+static BigInteger const BIG_INTEGER_SEVEN("7");
+static BigInteger const BIG_INTEGER_EIGHT("8");
+static BigInteger const BIG_INTEGER_NINE("9");
+static BigInteger const BIG_INTEGER_TEN("10");
+
 unsigned long ulong_high(unsigned long x) {
     return x >> (ULONG_BITS / 2);
 }
@@ -283,8 +296,7 @@ BigInteger::IntegerData BigInteger::bitset_divide(BigInteger::IntegerData& a, Bi
     if (bitset_is_zero(a)) {
         return IntegerData(1, 0ul);
     }
-    static const IntegerData ONE = IntegerData(1, 1ul);
-    if (bitset_compare(ONE, b) == 0) {
+    if (bitset_compare(BIG_INTEGER_ONE.get_data(), b) == 0) {
         return IntegerData(1, 0ul);
     }
     if (bitset_compare(a, b) < 0) {
@@ -668,12 +680,15 @@ bool BigInteger::is_positive() const {
 
 std::ostream &operator<<(std::ostream &os, BigInteger const &x)
 {
-    if (BigInteger::bitset_is_zero(x.m_data)) {
+    if (x.is_zero()) {
         os << "0";
         return os;
     }
     if (x.is_negative()) {
         os << "-";
+    }
+    else if (os.flags() & os.showpos) {
+        os << "+";
     }
     std::stack<char> rtrn_v;
     BigInteger::IntegerData dividing = x.m_data;
@@ -752,4 +767,18 @@ BigInteger BigInteger::div(BigInteger const& y) {
         result.m_positive = true;
         return result;
     }
+}
+
+std::size_t BigInteger::get_decimal_digits() const {
+    if (this->is_zero()) {
+        return 0;
+    }
+    std::size_t decimal_digits = 0;
+    IntegerData data = m_data;
+    while (!bitset_is_zero(data)) {
+        bitset_divide_10(data);
+        decimal_digits++;
+    }
+    return decimal_digits;
+}
 }

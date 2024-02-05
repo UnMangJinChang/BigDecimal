@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <random>
 
+using namespace umjc;
+
 int main() {
     std::ios_base::sync_with_stdio(false);
     std::ifstream test_cases("add_test.txt");

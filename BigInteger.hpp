@@ -12,9 +12,11 @@
 #include <ostream>
 #include <istream>
 
+namespace umjc {
 class BigInteger {
 public:
     using IntegerData = std::vector<unsigned long>;
+    friend class BigDecimal;
 private:
     bool m_positive;
     IntegerData m_data;
@@ -84,6 +86,20 @@ public:
 
     static BigInteger pow(BigInteger const& x, std::size_t n);
     BigInteger div(BigInteger const& y);
+    std::size_t get_decimal_digits() const;
 };
+
+extern BigInteger const BIG_INTEGER_ZERO;
+extern BigInteger const BIG_INTEGER_ONE;
+extern BigInteger const BIG_INTEGER_TWO;
+extern BigInteger const BIG_INTEGER_THREE;
+extern BigInteger const BIG_INTEGER_FOUR;
+extern BigInteger const BIG_INTEGER_FIVE;
+extern BigInteger const BIG_INTEGER_SIX;
+extern BigInteger const BIG_INTEGER_SEVEN;
+extern BigInteger const BIG_INTEGER_EIGHT;
+extern BigInteger const BIG_INTEGER_NINE;
+extern BigInteger const BIG_INTEGER_TEN;
+}
 
 #endif
