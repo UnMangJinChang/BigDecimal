@@ -17,7 +17,6 @@ int main() {
     umjc::BigDecimal input_pow = input;
     umjc::BigDecimal sine = "0";
     for (umjc::BigInteger i = "0"; i < "50"; i++) {
-        std::clog << factorial << " " << input_pow << " " << sine << "\n";
         if (i.is_even()) {
             sine += input_pow / factorial;
         }
