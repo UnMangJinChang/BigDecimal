@@ -68,6 +68,7 @@
         "__split_buffer": "cpp",
         "fstream": "cpp",
         "__bit_reference": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "codecvt": "cpp"
     }
 }

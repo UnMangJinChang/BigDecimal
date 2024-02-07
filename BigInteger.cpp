@@ -5,17 +5,17 @@ constexpr std::size_t ULONG_BITS = sizeof(unsigned long) * CHAR_BITS;
 static std::regex BIG_INTEGER_REGEX = std::regex("^[+-]?[0-9]+$");
 
 namespace umjc {
-static BigInteger const BIG_INTEGER_ZERO("0");
-static BigInteger const BIG_INTEGER_ONE("1");
-static BigInteger const BIG_INTEGER_TWO("2");
-static BigInteger const BIG_INTEGER_THREE("3");
-static BigInteger const BIG_INTEGER_FOUR("4");
-static BigInteger const BIG_INTEGER_FIVE("5");
-static BigInteger const BIG_INTEGER_SIX("6");
-static BigInteger const BIG_INTEGER_SEVEN("7");
-static BigInteger const BIG_INTEGER_EIGHT("8");
-static BigInteger const BIG_INTEGER_NINE("9");
-static BigInteger const BIG_INTEGER_TEN("10");
+BigInteger const BIG_INTEGER_ZERO("0");
+BigInteger const BIG_INTEGER_ONE("1");
+BigInteger const BIG_INTEGER_TWO("2");
+BigInteger const BIG_INTEGER_THREE("3");
+BigInteger const BIG_INTEGER_FOUR("4");
+BigInteger const BIG_INTEGER_FIVE("5");
+BigInteger const BIG_INTEGER_SIX("6");
+BigInteger const BIG_INTEGER_SEVEN("7");
+BigInteger const BIG_INTEGER_EIGHT("8");
+BigInteger const BIG_INTEGER_NINE("9");
+BigInteger const BIG_INTEGER_TEN("10");
 
 unsigned long ulong_high(unsigned long x) {
     return x >> (ULONG_BITS / 2);
@@ -572,6 +572,14 @@ BigInteger& BigInteger::operator%=(BigInteger const& y) {
     m_positive = true;
     return *this;
 }
+BigInteger& BigInteger::operator<<=(std::size_t n) {
+    bitset_shift_left(m_data, n);
+    return *this;
+}
+BigInteger& BigInteger::operator>>=(std::size_t n) {
+    bitset_shift_right(m_data, n);
+    return *this;
+}
 
 BigInteger BigInteger::operator+(BigInteger const& y) const {
     BigInteger rtrn_v = *this;
@@ -601,6 +609,26 @@ BigInteger BigInteger::operator%(BigInteger const& y) const {
     BigInteger rtrn_v = *this;
     rtrn_v %= y;
     return rtrn_v;
+}
+BigInteger BigInteger::operator<<(std::size_t n) const {
+    BigInteger rtrn_v = *this;
+    rtrn_v <<= n;
+    return rtrn_v;
+}
+BigInteger BigInteger::operator>>(std::size_t n) const {
+    BigInteger rtrn_v = *this;
+    rtrn_v >>= n;
+    return rtrn_v;
+}
+
+BigInteger BigInteger::operator+() const {
+    BigInteger result = *this;
+    return result;
+}
+BigInteger BigInteger::operator-() const {
+    BigInteger result = *this;
+    result.negate();
+    return result;
 }
 
 //Comparison Operators
@@ -780,5 +808,11 @@ std::size_t BigInteger::get_decimal_digits() const {
         decimal_digits++;
     }
     return decimal_digits;
+}
+}
+
+namespace std {
+umjc::BigInteger abs(umjc::BigInteger const& x) {
+    return x.is_negative() ? -x : x;
 }
 }

@@ -56,16 +56,23 @@ public:
     BigInteger& operator*=(BigInteger const& x);
     BigInteger& operator/=(BigInteger const& x);
     BigInteger& operator%=(BigInteger const& x);
+    BigInteger& operator<<=(std::size_t n);
+    BigInteger& operator>>=(std::size_t n);
     BigInteger& operator++();
     BigInteger& operator++(int);
     BigInteger& operator--();
     BigInteger& operator--(int);
+
+    BigInteger operator+() const;
+    BigInteger operator-() const;
 
     BigInteger operator+(BigInteger const& x) const;
     BigInteger operator-(BigInteger const& x) const;
     BigInteger operator*(BigInteger const& x) const;
     BigInteger operator/(BigInteger const& x) const;
     BigInteger operator%(BigInteger const& x) const;
+    BigInteger operator<<(std::size_t n) const;
+    BigInteger operator>>(std::size_t n) const;
 
     bool operator<(BigInteger const& x) const;
     bool operator<=(BigInteger const& x) const;
@@ -100,6 +107,10 @@ extern BigInteger const BIG_INTEGER_SEVEN;
 extern BigInteger const BIG_INTEGER_EIGHT;
 extern BigInteger const BIG_INTEGER_NINE;
 extern BigInteger const BIG_INTEGER_TEN;
+}
+
+namespace std {
+    umjc::BigInteger abs(umjc::BigInteger const& x);
 }
 
 #endif
