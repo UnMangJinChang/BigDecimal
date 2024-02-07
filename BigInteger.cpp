@@ -16,6 +16,8 @@ BigInteger const BIG_INTEGER_SEVEN("7");
 BigInteger const BIG_INTEGER_EIGHT("8");
 BigInteger const BIG_INTEGER_NINE("9");
 BigInteger const BIG_INTEGER_TEN("10");
+BigInteger const BIG_INTEGER_HUNDRED("100");
+BigInteger const BIG_INTEGER_THOUSAND("1000");
 
 unsigned long ulong_high(unsigned long x) {
     return x >> (ULONG_BITS / 2);
@@ -384,6 +386,15 @@ void BigInteger::from_string(char const* input) {
 BigInteger::BigInteger() {
     reset();
 }
+BigInteger::BigInteger(BigInteger const& x) {
+    this->m_data = x.m_data;
+    this->m_positive = x.m_positive;
+}
+BigInteger::BigInteger(BigInteger&& x) {
+    this->m_data = std::move(x.m_data);
+    x.m_data = IntegerData(1, 0ul);
+    this->m_positive = std::move(x.m_positive);
+}
 BigInteger::BigInteger(char const* c_str) {
     if (!std::regex_match(c_str, BIG_INTEGER_REGEX)) return; 
     if (c_str[0] != '+' and c_str[0] != '-') {
@@ -408,6 +419,17 @@ BigInteger::BigInteger(std::string const& str) {
 }
 
 //Assignments
+BigInteger& BigInteger::operator=(BigInteger const& x) {
+    this->m_data = x.m_data;
+    this->m_positive = x.m_positive;
+    return *this;
+}
+BigInteger& BigInteger::operator=(BigInteger&& x) {
+    this->m_data = std::move(x.m_data);
+    x.m_data = IntegerData(1, 0ul);
+    this->m_positive = std::move(x.m_positive);
+    return *this;
+}
 BigInteger& BigInteger::operator=(char const* c_str) {
     if (!std::regex_match(c_str, std::regex("^[+-]?[0-9]+$"))) return *this; 
     if (c_str[0] != '+' and c_str[0] != '-') {
@@ -704,6 +726,14 @@ bool BigInteger::is_negative() const {
 
 bool BigInteger::is_positive() const {
     return !is_zero() and m_positive;
+}
+bool BigInteger::is_even() const {
+    if (m_data.empty()) return true;
+    return m_data.front() % 2ul == 0ul;
+}
+bool BigInteger::is_odd() const {
+    if (m_data.empty()) return false;
+    return m_data.front() % 2ul == 1ul;
 }
 
 std::ostream &operator<<(std::ostream &os, BigInteger const &x)

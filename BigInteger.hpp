@@ -45,9 +45,13 @@ private:
     void from_string(char const* c_number_string);
 public:
     BigInteger();
+    BigInteger(BigInteger const& x);
+    BigInteger(BigInteger&& x);
     BigInteger(char const* c_string);
     BigInteger(std::string const& number_string);
     
+    BigInteger& operator=(BigInteger const& x);
+    BigInteger& operator=(BigInteger&& x);
     BigInteger& operator=(char const* c_string);
     BigInteger& operator=(std::string const& number_string);
 
@@ -87,6 +91,8 @@ public:
     bool is_negative() const;
     bool is_zero() const;
     bool is_positive() const;
+    bool is_odd() const;
+    bool is_even() const;
 
     IntegerData const& get_data() const;
     std::string to_string() const;
@@ -107,6 +113,8 @@ extern BigInteger const BIG_INTEGER_SEVEN;
 extern BigInteger const BIG_INTEGER_EIGHT;
 extern BigInteger const BIG_INTEGER_NINE;
 extern BigInteger const BIG_INTEGER_TEN;
+extern BigInteger const BIG_INTEGER_HUNDRED;
+extern BigInteger const BIG_INTEGER_THOUSAND;
 }
 
 namespace std {
