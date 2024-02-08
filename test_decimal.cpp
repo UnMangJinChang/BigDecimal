@@ -10,6 +10,6 @@ int main() {
         euler += term;
         factorial *= (i + umjc::BIG_INTEGER_ONE);
     }
-    std::cout << euler << "\n";
+    std::cout << euler.to_fixed_string(4) << "\n";
     return 0;
 }

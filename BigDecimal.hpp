@@ -61,6 +61,7 @@ static std::size_t get_significant_digits_capacity();
 
 std::string to_string() const;
 std::string to_scientific_string() const;
+std::string to_fixed_string(std::size_t fraction_digits) const;
 };
 }
 

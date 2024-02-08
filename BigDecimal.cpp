@@ -129,6 +129,34 @@ std::string BigDecimal::to_scientific_string() const {
     return representation;
 }
 
+std::string BigDecimal::to_fixed_string(std::size_t count) const {
+    if (m_integer.is_zero()) {
+        return "0." + std::string(count, '0');
+    }
+    std::string result = m_integer.to_string();
+    long long decimal_digits = result.length();
+    if (!m_integer.m_positive) {
+        decimal_digits--;
+    }
+    if (decimal_digits + 1 == m_exponent) {
+        return result + "." + std::string(count, '0');
+    }
+    else if (decimal_digits + 1 < m_exponent) {
+        return result + std::string(m_exponent - (decimal_digits + 1), '0') + "." + std::string(count, '0');
+    }
+    else {
+        //cut additional digits if they exist
+        if (decimal_digits - m_exponent > count + 1) {
+            result.erase(result.begin() + (m_exponent + count + 1), result.end());
+        }
+        else if (decimal_digits - m_exponent < count + 1) {
+            result.insert(result.end(), (count + m_exponent - decimal_digits + 1), '0');
+        }
+        result.insert(m_exponent + 1, 1, '.');
+        return result;
+    }
+}
+
 bool BigDecimal::from_string(std::string const& str) {
     m_integer = BIG_INTEGER_ZERO;
     m_exponent = 0;
