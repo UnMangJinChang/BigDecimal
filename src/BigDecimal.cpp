@@ -31,11 +31,10 @@ void BigDecimal::reduce_integer(BigInteger& x) {
     std::size_t decimal_digits = x.get_decimal_digits();
     if (decimal_digits > m_significant_digits) {
         std::size_t reducing = decimal_digits - m_significant_digits;
-        while (reducing --> 0) {
-            unsigned long remainder = BigInteger::bitset_divide_10(x.m_data);
-            if (remainder > 4) {
-                BigInteger::bitset_increment(x.m_data);
-            }
+        BigInteger divisor = pow_10(reducing);
+        BigInteger remainder = x.div(divisor);
+        if ((remainder << 1) >= divisor) {
+            x++;
         }
     }
 }
@@ -99,6 +98,35 @@ std::string BigDecimal::to_string() const {
         }
         return representation;
     }
+}
+
+std::string BigDecimal::to_scientific_string() const {
+    if (m_integer.is_zero()) {
+        return "0.0";
+    }
+    std::string representation = m_integer.to_string();
+    while (representation.back() == '0') {
+        representation.pop_back();
+    }
+    if (m_integer.m_positive) {
+        if (representation.length() == 1) {
+            representation += ".0";
+        }
+        else {
+            representation.insert(1, 1, '.');
+        }
+    }
+    else {
+        if (representation.length() == 2) {
+            representation += ".0";
+        }
+        else {
+            representation.insert(1, 1, '.');
+        }
+    }
+    representation += "e";
+    representation += std::to_string(m_exponent);
+    return representation;
 }
 
 bool BigDecimal::from_string(std::string const& str) {
@@ -248,7 +276,7 @@ BigDecimal::BigDecimal(BigInteger const& x) {
     reduce_integer(m_integer);
 }
 BigDecimal::BigDecimal(BigInteger&& x) {
-    m_integer = x;
+    m_integer = std::move(x);
     if (m_integer.is_zero()) {
         m_exponent = 0;
     }
@@ -287,7 +315,7 @@ BigDecimal& BigDecimal::operator=(BigInteger const& x) {
     return *this;
 }
 BigDecimal& BigDecimal::operator=(BigInteger&& x) {
-    m_integer = x;
+    m_integer = std::move(x);
     if (m_integer.is_zero()) {
         m_exponent = 0;
     }
@@ -408,7 +436,7 @@ BigDecimal& BigDecimal::operator/=(BigDecimal const& x) {
     else if (this_decimal_digits < x_decimal_digits) {
         this->m_integer *= pow_10(m_significant_digits + (x_decimal_digits - this_decimal_digits));
         BigInteger remainder = this->m_integer.div(x.m_integer);
-        if (remainder * BIG_INTEGER_TWO >= std::abs(remainder)) {
+        if (remainder * BIG_INTEGER_TWO >= std::abs(x.m_integer)) {
             this->m_integer++;
         }
     }

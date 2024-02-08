@@ -11,7 +11,6 @@ static std::size_t m_significant_digits;
 
 static void reduce_integer(BigInteger& x);
 
-std::string to_string() const;
 bool from_string(std::string const& x);
 bool from_string(char const* x);
 public:
@@ -59,6 +58,9 @@ bool is_positive() const;
 
 static void set_significant_digits_capacity(std::size_t new_capacity);
 static std::size_t get_significant_digits_capacity();
+
+std::string to_string() const;
+std::string to_scientific_string() const;
 };
 }
 
