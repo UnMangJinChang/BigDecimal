@@ -147,12 +147,17 @@ std::string BigDecimal::to_fixed_string(std::size_t count) const {
     else {
         //cut additional digits if they exist
         if (decimal_digits - m_exponent > count + 1) {
-            result.erase(result.begin() + (m_exponent + count + 1), result.end());
+            result.erase(result.end() - (decimal_digits - m_exponent - count - 1), result.end());
         }
         else if (decimal_digits - m_exponent < count + 1) {
             result.insert(result.end(), (count + m_exponent - decimal_digits + 1), '0');
         }
-        result.insert(m_exponent + 1, 1, '.');
+        if (m_integer.m_positive) {
+            result.insert(m_exponent + 1, 1, '.');
+        }
+        else {
+            result.insert(m_exponent + 2, 1, '.');
+        }
         return result;
     }
 }
