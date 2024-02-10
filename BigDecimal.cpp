@@ -39,97 +39,211 @@ void BigDecimal::reduce_integer(BigInteger& x) {
     }
 }
 
-std::string BigDecimal::to_string() const {
+std::string BigDecimal::to_string(std::size_t count) const {
     if (m_integer.is_zero()) {
-        return "0.0";
+        return "0";
     }
-    if (m_exponent < 0) {
-        std::string representation;
-        if (m_integer.is_negative()) {
-            representation += "-";
+    BigInteger::IntegerData digit_data = m_integer.m_data;
+    std::stack<char> digits;
+    bool found_first_nonzero = false;
+    while (!BigInteger::bitset_is_zero(digit_data)) {
+        unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
+        if (remainder != 0 or found_first_nonzero) {
+            found_first_nonzero = true;
+            digits.push('0' + remainder);
         }
-        representation += "0.";
-        if (1 < -m_exponent) {
-            representation.insert(representation.end(), -m_exponent - 1, '0');
-        }
-        BigInteger::IntegerData integer_data = m_integer.m_data;
-        std::stack<char> digits;
-        while (!BigInteger::bitset_is_zero(integer_data)) {
-            unsigned long digit = BigInteger::bitset_divide_10(integer_data);
-            digits.push('0' + digit);
-        }
-        while (!digits.empty()) {
-            representation.push_back(digits.top());
-            digits.pop();
-        }
-        //remove tailing zeroes
-        while (representation.back() == '0') {
-            representation.pop_back();
-        }
-        return representation;
     }
-    else {
-        std::string representation;
-        BigInteger::IntegerData integer_data = m_integer.m_data;
-        std::stack<char> digits;
-        while (!BigInteger::bitset_is_zero(integer_data)) {
-            unsigned long digit = BigInteger::bitset_divide_10(integer_data);
-            digits.push('0' + digit);
-        }
-        while (!digits.empty()) {
-            representation.push_back(digits.top());
-            digits.pop();
-        }
-        if (representation.length() == m_exponent + 1) {
-            representation += ".0";
-        }
-        else if (representation.length() > m_exponent + 1) {
-            representation.insert(m_exponent + 1, 1, '.');
-            while (representation.length() > 2 and *(representation.rbegin()) == '0' and *(representation.rbegin() + 1) != '.') {
-                representation.pop_back();
+    std::string result;
+    //1. Fixed 1
+    if (0 <= m_exponent and m_exponent < count) {
+        for (std::size_t i = 0; i < count; i++) {
+            if (digits.empty()) {
+                if (i >= m_exponent + 1) {
+                    break;
+                }
+                result += "0";
+            }
+            else {
+                if (i == m_exponent + 1) {
+                    result += ".";
+                }
+                result += digits.top();
+                digits.pop();
             }
         }
-        else {
-            representation.insert(representation.end(), m_exponent + 1 - representation.length(), '0');
-            representation += ".0";
+        //number string add 
+        if (!digits.empty() and digits.top() > '4') {
+            bool carry = true;
+            for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
+                if (*rit == '.') {
+                    continue;
+                }
+                if (carry) {
+                    (*rit)++;
+                }
+                if (*rit == '0' + 10) {
+                    *rit = '0';
+                    carry = true;
+                }
+                else {
+                    carry = false;
+                    break;
+                }
+            }
+            if (carry) {
+                result = "1" + result;
+            }
         }
-        if (m_integer.is_negative()) {
-            representation = "-" + representation;
-        }
-        return representation;
     }
+    //2. Fixed 2
+    else if (m_exponent < 0 and -m_exponent <= count) {
+        result = "0.";
+        if (m_exponent < -1) {
+            result += std::string(-m_exponent - 1, '0');
+        }
+        for (std::size_t i = -m_exponent; i < count; i++) {
+            if (digits.empty()) {
+                break;
+            }
+            else {
+                result += digits.top();
+                digits.pop();
+            }
+        }
+        //number string add 
+        if (!digits.empty() and digits.top() > '4') {
+            bool carry = true;
+            for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
+                if (*rit == '.') {
+                    continue;
+                }
+                if (carry) {
+                    (*rit)++;
+                }
+                if (*rit == '0' + 10) {
+                    *rit = '0';
+                    carry = true;
+                }
+                else {
+                    carry = false;
+                    break;
+                }
+            }
+            if (carry) {
+                result = "1" + result;
+            }
+        }
+    }
+    //3. Scientific
+    else {
+        for (std::size_t i = 0; i < count; i++) {
+            if (digits.empty()) {
+                break;
+            }
+            else {
+                if (i == 1) {
+                    result += ".";
+                }
+                result += digits.top();
+                digits.pop();
+            }
+        }
+        //number string add 
+        if (!digits.empty() and digits.top() > '4') {
+            bool carry = true;
+            for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
+                if (*rit == '.') {
+                    continue;
+                }
+                if (carry) {
+                    (*rit)++;
+                }
+                if (*rit == '0' + 10) {
+                    *rit = '0';
+                    carry = true;
+                }
+                else {
+                    carry = false;
+                    break;
+                }
+            }
+            if (carry) {
+                result = "1" + result;
+            }
+        }
+        //exponent
+        result += "e";
+        if (m_exponent > 0) {
+            result += "+";
+        }
+        result += std::to_string(m_exponent);
+    }
+    if (!m_integer.m_positive) {
+        result = "-" + result;
+    }
+    return result;
 }
 
-std::string BigDecimal::to_scientific_string() const {
+std::string BigDecimal::to_scientific_string(std::size_t count) const {
     if (m_integer.is_zero()) {
-        return "0.0";
+        return "0";
     }
-    std::string representation = m_integer.to_string();
-    while (representation.back() == '0') {
-        representation.pop_back();
+    BigInteger::IntegerData digit_data = m_integer.m_data;
+    std::stack<char> digits;
+    bool found_first_nonzero = false;
+    while (!BigInteger::bitset_is_zero(digit_data)) {
+        unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
+        if (remainder != 0 or found_first_nonzero) {
+            found_first_nonzero = true;
+            digits.push('0' + remainder);
+        }
     }
-    if (m_integer.m_positive) {
-        if (representation.length() == 1) {
-            representation += ".0";
+    std::string result;
+    for (std::size_t i = 0; i < count; i++) {
+        if (digits.empty()) {
+            break;
         }
         else {
-            representation.insert(1, 1, '.');
+            if (i == 1) {
+                result += ".";
+            }
+            result += digits.top();
+            digits.pop();
         }
     }
-    else {
-        if (representation.length() == 2) {
-            representation += ".0";
+    //number string add 
+    if (!digits.empty() and digits.top() > '4') {
+        bool carry = true;
+        for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
+            if (*rit == '.') {
+                continue;
+            }
+            if (carry) {
+                (*rit)++;
+            }
+            if (*rit == '0' + 10) {
+                *rit = '0';
+                carry = true;
+            }
+            else {
+                carry = false;
+                break;
+            }
         }
-        else {
-            representation.insert(1, 1, '.');
+        if (carry) {
+            result = "1" + result;
         }
     }
-    representation += "e";
+    //exponent
+    result += "e";
     if (m_exponent > 0) {
-        representation += "+";
+        result += "+";
     }
-    representation += std::to_string(m_exponent);
-    return representation;
+    result += std::to_string(m_exponent);
+    if (!m_integer.m_positive) {
+        result = "-" + result;
+    }
+    return result;
 }
 
 std::string BigDecimal::to_fixed_string(std::size_t count) const {
@@ -138,10 +252,15 @@ std::string BigDecimal::to_fixed_string(std::size_t count) const {
     }
     BigInteger::IntegerData digit_data = m_integer.m_data;
     std::stack<char> digits;
-    std::string result;
+    bool found_first_nonzero = false;
     while (!BigInteger::bitset_is_zero(digit_data)) {
-        digits.push('0' + BigInteger::bitset_divide_10(digit_data));
+        unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
+        if (remainder != 0 or found_first_nonzero) {
+            found_first_nonzero = true;
+            digits.push('0' + remainder);
+        }
     }
+    std::string result;
     if (m_exponent + 1 == 0) {
         result = "0";
         for (std::size_t i = 0; i < count; i++) {
@@ -704,7 +823,18 @@ bool BigDecimal::operator!=(BigDecimal const& x) const {
 }
 
 std::ostream& operator<<(std::ostream& os, BigDecimal const& x) {
-    os << x.to_string();
+    if (os.flags() & std::ios::showpos and x.is_positive()) {
+        os << "+";
+    }
+    if (os.flags() & std::ios::scientific) {
+        os << x.to_scientific_string(os.precision());
+    }
+    else if (os.flags() & std::ios::fixed) {
+        os << x.to_fixed_string(os.precision());
+    }
+    else {
+        os << x.to_string(os.precision());
+    }
     return os;
 }
 std::istream& operator>>(std::istream& is, BigDecimal& x) {
