@@ -125,6 +125,9 @@ std::string BigDecimal::to_scientific_string() const {
         }
     }
     representation += "e";
+    if (m_exponent > 0) {
+        representation += "+";
+    }
     representation += std::to_string(m_exponent);
     return representation;
 }
@@ -133,33 +136,76 @@ std::string BigDecimal::to_fixed_string(std::size_t count) const {
     if (m_integer.is_zero()) {
         return "0." + std::string(count, '0');
     }
-    std::string result = m_integer.to_string();
-    long long decimal_digits = result.length();
-    if (!m_integer.m_positive) {
-        decimal_digits--;
+    BigInteger::IntegerData digit_data = m_integer.m_data;
+    std::stack<char> digits;
+    std::string result;
+    while (!BigInteger::bitset_is_zero(digit_data)) {
+        digits.push('0' + BigInteger::bitset_divide_10(digit_data));
     }
-    if (decimal_digits + 1 == m_exponent) {
-        return result + "." + std::string(count, '0');
+    if (m_exponent + 1 == 0) {
+        result = "0";
+        for (std::size_t i = 0; i < count; i++) {
+            if (digits.empty()) {
+                result += "0";
+            }
+            else {
+                result += digits.top();
+                digits.pop();
+            }
+        }
     }
-    else if (decimal_digits + 1 < m_exponent) {
-        return result + std::string(m_exponent - (decimal_digits + 1), '0') + "." + std::string(count, '0');
+    else if (m_exponent + 1 > 0) {
+        for (std::size_t i = 0; i < count + m_exponent + 1; i++) {
+            if (digits.empty()) {
+                result += "0";
+            }
+            else {
+                result += digits.top();
+                digits.pop();
+            }
+        }
     }
     else {
-        //cut additional digits if they exist
-        if (decimal_digits - m_exponent > count + 1) {
-            result.erase(result.end() - (decimal_digits - m_exponent - count - 1), result.end());
+        std::size_t padding_zeroes = std::min<std::size_t>(count, -m_exponent - 1);
+        result = std::string(padding_zeroes + 1, '0');
+        for (std::size_t i = 0; i < count - padding_zeroes; i++) {
+            if (digits.empty()) {
+                result += "0";
+            }
+            else {
+                result += digits.top();
+                digits.pop();
+            }
         }
-        else if (decimal_digits - m_exponent < count + 1) {
-            result.insert(result.end(), (count + m_exponent - decimal_digits + 1), '0');
-        }
-        if (m_integer.m_positive) {
-            result.insert(m_exponent + 1, 1, '.');
-        }
-        else {
-            result.insert(m_exponent + 2, 1, '.');
-        }
-        return result;
     }
+    //number string add 
+    if (!digits.empty() and digits.top() > '4') {
+        bool carry = true;
+        for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
+            if (*rit == '.') {
+                continue;
+            }
+            if (carry) {
+                (*rit)++;
+            }
+            if (*rit == '0' + 10) {
+                *rit = '0';
+                carry = true;
+            }
+            else {
+                carry = false;
+                break;
+            }
+        }
+        if (carry) {
+            result = "1" + result;
+        }
+    }
+    result.insert(result.length() - count, ".");
+    if (!m_integer.m_positive) {
+        result = "-" + result;
+    }
+    return result;
 }
 
 bool BigDecimal::from_string(std::string const& str) {
