@@ -10,7 +10,7 @@ int main() {
         euler += term;
         factorial *= (i + umjc::BIG_INTEGER_ONE);
     }
-    std::cout.precision(15);
+    std::cout.precision(20);
     std::cout << (euler * "100000.0") << "\n";
     std::cout << (euler * "10000.0") << "\n";
     std::cout << (euler * "1000.0") << "\n";

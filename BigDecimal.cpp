@@ -96,7 +96,7 @@ std::string BigDecimal::to_string(std::size_t count) const {
         }
     }
     //2. Fixed 2
-    else if (m_exponent < 0 and -m_exponent <= count) {
+    else if (m_exponent < 0 and -m_exponent < count) {
         result = "0.";
         if (m_exponent < -1) {
             result += std::string(-m_exponent - 1, '0');
