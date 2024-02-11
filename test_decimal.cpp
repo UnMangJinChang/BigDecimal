@@ -16,15 +16,15 @@ int main() {
     while (input_stream >> precision >> input_1 >> input_2 >> answer) {
         input_decimal_1 = input_1;
         input_decimal_2 = input_2;
-        response = (input_decimal_1 + input_decimal_2).to_string(precision);
+        response = (input_decimal_1 + input_decimal_2).to_scientific_string(precision);
         if (answer != response) {
             std::clog << "Test case failed!\n"
                 << "answer   = " << answer << ", but\n"
                 << "response = " << response << ".\n"
                 << "input_1          = " << input_1 << "\n"
-                << "input_1(decimal) = " << input_decimal_1.to_string(precision) << "\n"
+                << "input_1(decimal) = " << input_decimal_1.to_scientific_string(precision) << "\n"
                 << "input_2          = " << input_2 << "\n"
-                << "input_2(decimal) = " << input_decimal_2.to_string(precision) << "\n";
+                << "input_2(decimal) = " << input_decimal_2.to_scientific_string(precision) << "\n";
             return EXIT_FAILURE;
         }
     }
@@ -35,15 +35,15 @@ int main() {
     while (input_stream >> precision >> input_1 >> input_2 >> answer) {
         input_decimal_1 = input_1;
         input_decimal_2 = input_2;
-        response = (input_decimal_1 * input_decimal_2).to_string(precision);
+        response = (input_decimal_1 * input_decimal_2).to_scientific_string(precision);
         if (answer != response) {
             std::clog << "Test case failed!\n"
                 << "answer   = " << answer << ", but\n"
                 << "response = " << response << ".\n"
                 << "input_1          = " << input_1 << "\n"
-                << "input_1(decimal) = " << input_decimal_1.to_string(precision) << "\n"
+                << "input_1(decimal) = " << input_decimal_1.to_scientific_string(precision) << "\n"
                 << "input_2          = " << input_2 << "\n"
-                << "input_2(decimal) = " << input_decimal_2.to_string(precision) << "\n";
+                << "input_2(decimal) = " << input_decimal_2.to_scientific_string(precision) << "\n";
             return EXIT_FAILURE;
         }
     }
@@ -54,15 +54,15 @@ int main() {
     while (input_stream >> precision >> input_1 >> input_2 >> answer) {
         input_decimal_1 = input_1;
         input_decimal_2 = input_2;
-        response = (input_decimal_1 / input_decimal_2).to_string(precision);
+        response = (input_decimal_1 / input_decimal_2).to_scientific_string(precision);
         if (answer != response) {
             std::clog << "Test case failed!\n"
                 << "answer   = " << answer << ", but\n"
                 << "response = " << response << ".\n"
                 << "input_1          = " << input_1 << "\n"
-                << "input_1(decimal) = " << input_decimal_1.to_string(precision) << "\n"
+                << "input_1(decimal) = " << input_decimal_1.to_scientific_string(precision) << "\n"
                 << "input_2          = " << input_2 << "\n"
-                << "input_2(decimal) = " << input_decimal_2.to_string(precision) << "\n";
+                << "input_2(decimal) = " << input_decimal_2.to_scientific_string(precision) << "\n";
             return EXIT_FAILURE;
         }
     }

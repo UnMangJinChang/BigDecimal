@@ -96,7 +96,7 @@ std::string BigDecimal::to_string(std::size_t count) const {
         }
     }
     //2. Fixed 2
-    else if (m_exponent < 0 and -m_exponent < count) {
+    else if (m_exponent < 0 and -m_exponent <= count) {
         result = "0.";
         if (m_exponent < -1) {
             result += std::string(-m_exponent - 1, '0');
@@ -193,7 +193,8 @@ std::string BigDecimal::to_scientific_string(std::size_t count) const {
     bool found_first_nonzero = false;
     while (!BigInteger::bitset_is_zero(digit_data)) {
         unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
-        if (remainder != 0 or found_first_nonzero) {
+        // if (remainder != 0 or found_first_nonzero) {
+        if (true) {
             found_first_nonzero = true;
             digits.push('0' + remainder);
         }
@@ -255,7 +256,8 @@ std::string BigDecimal::to_fixed_string(std::size_t count) const {
     bool found_first_nonzero = false;
     while (!BigInteger::bitset_is_zero(digit_data)) {
         unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
-        if (remainder != 0 or found_first_nonzero) {
+        // if (remainder != 0 or found_first_nonzero) {
+        if (true) {
             found_first_nonzero = true;
             digits.push('0' + remainder);
         }
@@ -555,11 +557,11 @@ BigDecimal& BigDecimal::operator+=(BigDecimal const& x) {
     this_frac_len -= m_exponent + 1;
     x_frac_len -= x.m_exponent + 1;
     long long fraction_len = std::max(this_frac_len, x_frac_len);
-    if (this_frac_len < fraction_len) {
-        m_integer = this->m_integer * pow_10(fraction_len - this_frac_len) + x.m_integer;
+    if (this_frac_len < x_frac_len) {
+        m_integer = this->m_integer * pow_10(x_frac_len - this_frac_len) + x.m_integer;
     }
-    else if (this_frac_len > fraction_len) {
-        m_integer = this->m_integer + x.m_integer * pow_10(this_frac_len - fraction_len);
+    else if (this_frac_len > x_frac_len) {
+        m_integer = this->m_integer + x.m_integer * pow_10(this_frac_len - x_frac_len);
     }
     else {
         m_integer = this->m_integer + x.m_integer;

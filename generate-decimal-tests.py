@@ -12,7 +12,7 @@ for prec in precisions:
     for i in range(100):
         a = generate_random_decimal(prec)
         b = generate_random_decimal(prec)
-        f.writelines([f'{prec} {a:{prec}f} {b:{prec}f}\n', f'{a + b:{prec}f}\n'])
+        f.writelines([f'{prec} {a:{prec}e} {b:{prec}e}\n', f'{a + b:{prec}e}\n'])
 f.close()
 
 f = open('decimal_mul_test.txt', 'w')
@@ -21,7 +21,7 @@ for prec in precisions:
     for i in range(100):
         a = generate_random_decimal(prec)
         b = generate_random_decimal(prec)
-        f.writelines([f'{prec} {a:{prec}f} {b:{prec}f}\n', f'{a * b:{prec}f}\n'])
+        f.writelines([f'{prec} {a:{prec}e} {b:{prec}e}\n', f'{a * b:{prec}e}\n'])
 f.close()
 
 f = open('decimal_div_test.txt', 'w')
@@ -32,5 +32,5 @@ for prec in precisions:
         b = generate_random_decimal(prec)
         while b.is_zero():
             b = generate_random_decimal(prec)
-        f.writelines([f'{prec} {a:{prec}f} {b:{prec}f}\n', f'{a / b:{prec}f}\n'])
+        f.writelines([f'{a:{prec}e} {b:{prec}e}\n', f'{a / b:{prec}e}\n'])
 f.close()
