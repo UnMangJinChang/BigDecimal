@@ -72,5 +72,20 @@ int main() {
         }
     }
     std::cout << "Division test passed...\n";
+    std::cout << "e = \n";
+    umjc::BigDecimal::set_significant_digits_capacity(1000);
+    umjc::BigDecimal euler = "0";
+    umjc::BigDecimal factorial = "1";
+    for (umjc::BigInteger i = "1"; i <= "500"; i++) {
+        euler += umjc::BigDecimal("1.0") / factorial;
+        factorial *= i;
+    }
+    std::cout << euler.to_string(1000) << "\n";
+    std::cout << "sqrt(5) = \n";
+    umjc::BigDecimal sqrt_2 = "3.0";
+    for (umjc::BigInteger i = "1"; i <= "50"; i++) {
+        sqrt_2 = umjc::BigDecimal("0.5") * (sqrt_2 + umjc::BigDecimal("5.0") / sqrt_2);
+    }
+    std::cout << sqrt_2.to_string(1000) << "\n";
     return 0;
 }
