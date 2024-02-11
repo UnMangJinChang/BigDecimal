@@ -82,10 +82,16 @@ int main() {
     }
     std::cout << euler.to_string(1000) << "\n";
     std::cout << "sqrt(5) = \n";
-    umjc::BigDecimal sqrt_2 = "3.0";
+    umjc::BigDecimal sqrt_5 = "3.0";
     for (umjc::BigInteger i = "1"; i <= "50"; i++) {
-        sqrt_2 = umjc::BigDecimal("0.5") * (sqrt_2 + umjc::BigDecimal("5.0") / sqrt_2);
+        sqrt_5 = umjc::BigDecimal("0.5") * (sqrt_5 + umjc::BigDecimal("5.0") / sqrt_5);
     }
-    std::cout << sqrt_2.to_string(1000) << "\n";
+    std::cout << sqrt_5.to_string(1000) << "\n";
+    std::cout << "cbrt(2) = \n";
+    umjc::BigDecimal cbrt_2 = "2.0";
+    for (umjc::BigInteger i = "1"; i <= "50"; i++) {
+        cbrt_2 = umjc::BigDecimal("2") * cbrt_2 / "3" + umjc::BigDecimal("2") / (umjc::BigDecimal("3") * cbrt_2 * cbrt_2);
+    }
+    std::cout << cbrt_2.to_string(1000) << "\n";
     return 0;
 }
