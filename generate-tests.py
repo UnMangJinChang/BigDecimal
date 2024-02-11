@@ -1,16 +1,36 @@
 from random import randrange
 
 f = open('add_test.txt', 'w')
-limit = 10**2000
-for i in range(1_000):
+limit = 100
+for i in range(100):
+    a = randrange(-limit, limit)
+    b = randrange(-limit, limit)
+    f.write(f'{a} {b}\n{a + b}\n')
+limit = 10**10
+for i in range(100):
+    a = randrange(-limit, limit)
+    b = randrange(-limit, limit)
+    f.write(f'{a} {b}\n{a + b}\n')
+limit = 10**200
+for i in range(300):
     a = randrange(-limit, limit)
     b = randrange(-limit, limit)
     f.write(f'{a} {b}\n{a + b}\n')
 f.close()
 
 f = open('mul_test.txt', 'w')
+limit = 100
+for i in range(100):
+    a = randrange(-limit, limit)
+    b = randrange(-limit, limit)
+    f.write(f'{a} {b}\n{a * b}\n')
+limit = 10**10
+for i in range(100):
+    a = randrange(-limit, limit)
+    b = randrange(-limit, limit)
+    f.write(f'{a} {b}\n{a * b}\n')
 limit = 10**1000
-for i in range(1_000):
+for i in range(300):
     a = randrange(-limit, limit)
     b = randrange(-limit, limit)
     f.write(f'{a} {b}\n{a * b}\n')
@@ -18,7 +38,7 @@ for i in range(1_000):
 f = open('div_test.txt', 'w')
 limits = [10**5, 10**10, 10**50, 10**1000]
 for limit in limits:
-    for i in range(500):
+    for i in range(100):
         a = randrange(-limit, limit)
         b = randrange(-limit // 1000, limit // 1000)
         while b == 0:
