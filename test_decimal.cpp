@@ -3,7 +3,6 @@
 #include "BigDecimal.hpp"
 
 int main() {
-    umjc::BigDecimal::set_significant_digits_capacity(1000);
     std::size_t precision;
     std::string input_1, input_2;
     umjc::BigDecimal input_decimal_1, input_decimal_2;
@@ -14,10 +13,12 @@ int main() {
     //Addition test
     input_stream.open("decimal_add_test.txt");
     while (input_stream >> precision >> input_1 >> input_2 >> answer) {
+        umjc::BigDecimal::set_significant_digits_capacity(precision);
+        answer = umjc::BigDecimal(answer).to_scientific_string(precision);
         input_decimal_1 = input_1;
         input_decimal_2 = input_2;
         response = (input_decimal_1 + input_decimal_2).to_scientific_string(precision);
-        if (answer != response) {
+        if (answer.compare(response) != 0) {
             std::clog << "Test case failed!\n"
                 << "answer   = " << answer << ", but\n"
                 << "response = " << response << ".\n"
@@ -33,10 +34,12 @@ int main() {
     //Multiplication test
     input_stream.open("decimal_mul_test.txt");
     while (input_stream >> precision >> input_1 >> input_2 >> answer) {
+        umjc::BigDecimal::set_significant_digits_capacity(precision);
+        answer = umjc::BigDecimal(answer).to_scientific_string(precision);
         input_decimal_1 = input_1;
         input_decimal_2 = input_2;
         response = (input_decimal_1 * input_decimal_2).to_scientific_string(precision);
-        if (answer != response) {
+        if (answer.compare(response) != 0) {
             std::clog << "Test case failed!\n"
                 << "answer   = " << answer << ", but\n"
                 << "response = " << response << ".\n"
@@ -52,10 +55,12 @@ int main() {
     //Division test
     input_stream.open("decimal_div_test.txt");
     while (input_stream >> precision >> input_1 >> input_2 >> answer) {
+        umjc::BigDecimal::set_significant_digits_capacity(precision);
+        answer = umjc::BigDecimal(answer).to_scientific_string(precision);
         input_decimal_1 = input_1;
         input_decimal_2 = input_2;
         response = (input_decimal_1 / input_decimal_2).to_scientific_string(precision);
-        if (answer != response) {
+        if (answer.compare(response) != 0) {
             std::clog << "Test case failed!\n"
                 << "answer   = " << answer << ", but\n"
                 << "response = " << response << ".\n"

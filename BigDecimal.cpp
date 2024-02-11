@@ -28,13 +28,25 @@ std::size_t BigDecimal::m_significant_digits = 128;
 static std::regex const BIG_DECIMAL_REGEX = std::regex("^([+\\-])?([0-9]+\\.?[0-9]*|\\.[0-9]+)?(e[+\\-]?[0-9]+)?$");
 
 void BigDecimal::reduce_integer(BigInteger& x) {
+    if (x.is_zero()) {
+        return;
+    }
     std::size_t decimal_digits = x.get_decimal_digits();
     if (decimal_digits > m_significant_digits) {
         std::size_t reducing = decimal_digits - m_significant_digits;
-        BigInteger divisor = pow_10(reducing);
-        BigInteger remainder = x.div(divisor);
-        if ((remainder << 1) >= divisor) {
-            x++;
+        BigInteger::IntegerData divisor = pow_10(reducing).m_data;
+        BigInteger::IntegerData remainder = BigInteger::bitset_divide(x.m_data, divisor);
+        BigInteger::bitset_shift_left(remainder, 1);
+        int compare = BigInteger::bitset_compare(remainder, divisor);
+        if (compare > 0) {
+            BigInteger::bitset_increment(x.m_data);
+        }
+        else if (compare == 0) {
+            BigInteger::IntegerData current_data = x.m_data;
+            unsigned long last_digit = BigInteger::bitset_divide_10(current_data);
+            if (last_digit % 2 != 0) {
+                BigInteger::bitset_increment(x.m_data);
+            }
         }
     }
 }
@@ -73,7 +85,22 @@ std::string BigDecimal::to_string(std::size_t count) const {
         }
         //number string add 
         if (!digits.empty() and digits.top() > '4') {
-            bool carry = true;
+            //Round half to even
+            bool carry = digits.top() != '5';
+            if (digits.top() == '5') {
+                bool all_zero = true;
+                digits.pop();
+                while (!digits.empty()) {
+                    if (digits.top() != '0') {
+                        all_zero = false;
+                        break;
+                    }
+                    else {
+                        digits.pop();
+                    }
+                }
+                carry = !all_zero or (result.back() - '0') % 2 != 0;
+            }
             for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
                 if (*rit == '.') {
                     continue;
@@ -112,7 +139,22 @@ std::string BigDecimal::to_string(std::size_t count) const {
         }
         //number string add 
         if (!digits.empty() and digits.top() > '4') {
-            bool carry = true;
+            //Round half to even
+            bool carry = digits.top() != '5';
+            if (digits.top() == '5') {
+                bool all_zero = true;
+                digits.pop();
+                while (!digits.empty()) {
+                    if (digits.top() != '0') {
+                        all_zero = false;
+                        break;
+                    }
+                    else {
+                        digits.pop();
+                    }
+                }
+                carry = !all_zero or (result.back() - '0') % 2 != 0;
+            }
             for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
                 if (*rit == '.') {
                     continue;
@@ -150,7 +192,22 @@ std::string BigDecimal::to_string(std::size_t count) const {
         }
         //number string add 
         if (!digits.empty() and digits.top() > '4') {
-            bool carry = true;
+            //Round half to even
+            bool carry = digits.top() != '5';
+            if (digits.top() == '5') {
+                bool all_zero = true;
+                digits.pop();
+                while (!digits.empty()) {
+                    if (digits.top() != '0') {
+                        all_zero = false;
+                        break;
+                    }
+                    else {
+                        digits.pop();
+                    }
+                }
+                carry = !all_zero or (result.back() - '0') % 2 != 0;
+            }
             for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
                 if (*rit == '.') {
                     continue;
@@ -193,8 +250,7 @@ std::string BigDecimal::to_scientific_string(std::size_t count) const {
     bool found_first_nonzero = false;
     while (!BigInteger::bitset_is_zero(digit_data)) {
         unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
-        // if (remainder != 0 or found_first_nonzero) {
-        if (true) {
+        if (remainder != 0 or found_first_nonzero) {
             found_first_nonzero = true;
             digits.push('0' + remainder);
         }
@@ -214,7 +270,22 @@ std::string BigDecimal::to_scientific_string(std::size_t count) const {
     }
     //number string add 
     if (!digits.empty() and digits.top() > '4') {
-        bool carry = true;
+        //Round half to even
+        bool carry = digits.top() != '5';
+        if (digits.top() == '5') {
+            bool all_zero = true;
+            digits.pop();
+            while (!digits.empty()) {
+                if (digits.top() != '0') {
+                    all_zero = false;
+                    break;
+                }
+                else {
+                    digits.pop();
+                }
+            }
+            carry = !all_zero or (result.back() - '0') % 2 != 0;
+        }
         for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
             if (*rit == '.') {
                 continue;
@@ -256,8 +327,7 @@ std::string BigDecimal::to_fixed_string(std::size_t count) const {
     bool found_first_nonzero = false;
     while (!BigInteger::bitset_is_zero(digit_data)) {
         unsigned long remainder = BigInteger::bitset_divide_10(digit_data);
-        // if (remainder != 0 or found_first_nonzero) {
-        if (true) {
+        if (remainder != 0 or found_first_nonzero) {
             found_first_nonzero = true;
             digits.push('0' + remainder);
         }
@@ -301,7 +371,22 @@ std::string BigDecimal::to_fixed_string(std::size_t count) const {
     }
     //number string add 
     if (!digits.empty() and digits.top() > '4') {
-        bool carry = true;
+        //Round half to even
+        bool carry = digits.top() != '5';
+        if (digits.top() == '5') {
+            bool all_zero = true;
+            digits.pop();
+            while (!digits.empty()) {
+                if (digits.top() != '0') {
+                    all_zero = false;
+                    break;
+                }
+                else {
+                    digits.pop();
+                }
+            }
+            carry = !all_zero or (result.back() - '0') % 2 != 0;
+        }
         for (auto rit = result.rbegin(); rit != result.rend(); rit++) {
             if (*rit == '.') {
                 continue;
@@ -590,17 +675,21 @@ BigDecimal& BigDecimal::operator-=(BigDecimal const& x) {
         this->m_exponent = x.m_exponent;
         return *this;
     }
-    long long this_frac_len = this->m_integer.get_decimal_digits() - 1;
-    long long x_frac_len = x.m_integer.get_decimal_digits() - 1;
-    this_frac_len -= m_exponent;
-    x_frac_len -= x.m_exponent;
+    long long this_frac_len = this->m_integer.get_decimal_digits();
+    long long x_frac_len = x.m_integer.get_decimal_digits();
+    this_frac_len -= m_exponent + 1;
+    x_frac_len -= x.m_exponent + 1;
+    long long fraction_len = std::max(this_frac_len, x_frac_len);
     if (this_frac_len < x_frac_len) {
         m_integer = this->m_integer * pow_10(x_frac_len - this_frac_len) - x.m_integer;
     }
-    else {
+    else if (this_frac_len > x_frac_len) {
         m_integer = this->m_integer - x.m_integer * pow_10(this_frac_len - x_frac_len);
     }
-    m_exponent = (long long)m_integer.get_decimal_digits() - std::max(this_frac_len, x_frac_len) - 1;
+    else {
+        m_integer = this->m_integer - x.m_integer;
+    }
+    m_exponent = (long long)m_integer.get_decimal_digits() - fraction_len - 1;
     reduce_integer(m_integer);
     return *this;
 }
