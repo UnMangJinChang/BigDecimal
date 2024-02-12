@@ -68,7 +68,7 @@ static BigDecimal pow(BigDecimal const& x, std::size_t n);
 static BigDecimal sqrt(BigDecimal const& x);
 static BigDecimal cbrt(BigDecimal const& x);
 static BigDecimal euler_number();
-
+static BigDecimal exp(BigDecimal const& x);
 };
 }
 

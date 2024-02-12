@@ -72,16 +72,24 @@ int main() {
         }
     }
     std::cout << "Division test passed...\n";
-    umjc::BigDecimal::set_significant_digits_capacity(1000);
+    umjc::BigDecimal::set_significant_digits_capacity(250);
     std::cout << "e = \n";
-    std::cout << umjc::BigDecimal::euler_number().to_string(1000) << "\n";
-    std::cout << "sqrt(5) = \n";
-    std::cout << umjc::BigDecimal::sqrt("5").to_string(1000) << "\n";
-    std::cout << "sqrt(300) = \n";
-    std::cout << umjc::BigDecimal::sqrt("300").to_string(1000) << "\n";
+    std::cout << umjc::BigDecimal::euler_number().to_string(250) << "\n";
+    std::cout << "sqrt(5.2) = \n";
+    std::cout << umjc::BigDecimal::sqrt("5.2").to_string(250) << "\n";
+    std::cout << "sqrt(0.314159265359) = \n";
+    std::cout << umjc::BigDecimal::sqrt("0.314159265359").to_string(250) << "\n";
     std::cout << "cbrt(2) = \n";
-    std::cout << umjc::BigDecimal::cbrt("2").to_string(1000) << "\n";
+    std::cout << umjc::BigDecimal::cbrt("2").to_string(250) << "\n";
     std::cout << "cbrt(2000) = \n";
-    std::cout << umjc::BigDecimal::cbrt("2000").to_string(1000) << "\n";
+    std::cout << umjc::BigDecimal::cbrt("2000").to_string(250) << "\n";
+    std::cout << "exp(0.8) = \n";
+    std::cout << umjc::BigDecimal::exp("0.8").to_string(250) << "\n";
+    std::cout << "exp(-0.3) = \n";
+    std::cout << umjc::BigDecimal::exp("-0.3").to_string(250) << "\n";
+    std::cout << "exp(7) = \n";
+    std::cout << umjc::BigDecimal::exp("7").to_string(250) << "\n";
+    std::cout << "exp(-5) = \n";
+    std::cout << umjc::BigDecimal::exp("-5").to_string(250) << "\n";
     return 0;
 }

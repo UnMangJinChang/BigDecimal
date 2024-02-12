@@ -1,4 +1,5 @@
 #include "BigDecimal.hpp"
+#include <iostream>
 
 umjc::BigInteger pow_10(std::size_t n) {
     if (n == 0) {
@@ -718,21 +719,33 @@ BigDecimal& BigDecimal::operator/=(BigDecimal const& x) {
         this->m_integer *= pow_10(m_significant_digits);
         auto divisor = x.m_integer * pow_10(this_decimal_digits - x_decimal_digits);
         BigInteger remainder = this->m_integer.div(divisor);
-        if (remainder * BIG_INTEGER_TWO >= BigInteger::abs(divisor)) {
+        remainder <<= 1;
+        if (remainder > BigInteger::abs(divisor)) {
+            this->m_integer++;
+        }
+        else if (remainder == BigInteger::abs(divisor) and this->m_integer.is_odd()) {
             this->m_integer++;
         }
     }
     else if (this_decimal_digits < x_decimal_digits) {
         this->m_integer *= pow_10(m_significant_digits + (x_decimal_digits - this_decimal_digits));
         BigInteger remainder = this->m_integer.div(x.m_integer);
-        if (remainder * BIG_INTEGER_TWO >= BigInteger::abs(x.m_integer)) {
+        remainder <<= 1;
+        if (remainder > BigInteger::abs(x.m_integer)) {
+            this->m_integer++;
+        }
+        else if (remainder == BigInteger::abs(x.m_integer) and this->m_integer.is_odd()) {
             this->m_integer++;
         }
     }
     else {
         this->m_integer *= pow_10(m_significant_digits);
         BigInteger remainder = this->m_integer.div(x.m_integer);
-        if (remainder * BIG_INTEGER_TWO >= BigInteger::abs(x.m_integer)) {
+        remainder <<= 1;
+        if (remainder > BigInteger::abs(x.m_integer)) {
+            this->m_integer++;
+        }
+        else if (remainder == BigInteger::abs(x.m_integer) and this->m_integer.is_odd()) {
             this->m_integer++;
         }
     }
@@ -778,139 +791,203 @@ BigDecimal BigDecimal::operator/(BigDecimal const& x) const {
 
 bool BigDecimal::operator<(BigDecimal const& x) const {
     if (this->is_zero()) {
-        if (x.is_positive()) return true;
-        else return false;
+        return x.is_positive();
     }
     if (x.is_zero()) {
-        if (this->is_positive()) return false;
-        else return true;
+        return !this->m_integer.m_positive;
     }
-    if (this->is_positive() == x.is_positive()) {
-        std::size_t this_dec_dig = this->m_integer.get_decimal_digits();
-        std::size_t x_dec_dig = x.m_integer.get_decimal_digits();
-        if (this_dec_dig > x_dec_dig) {
-            return this->m_integer < x.m_integer * pow_10(this_dec_dig - x_dec_dig);
+    if (this->m_integer.m_positive == x.m_integer.m_positive) {
+        if (this->m_exponent < x.m_exponent) return this->m_integer.m_positive;
+        else if (this->m_exponent > x.m_exponent) return !this->m_integer.m_positive;
+        std::stack<unsigned long> this_digits, x_digits;
+        BigInteger::IntegerData this_data = this->m_integer.m_data;
+        BigInteger::IntegerData x_data = x.m_integer.m_data;
+        while (!BigInteger::bitset_is_zero(this_data)) {
+            this_digits.push(BigInteger::bitset_divide_10(this_data));
         }
-        else if (this_dec_dig < x_dec_dig) {
-            return this->m_integer * pow_10(x_dec_dig - this_dec_dig) < x.m_integer;
+        while (!BigInteger::bitset_is_zero(x_data)) {
+            x_digits.push(BigInteger::bitset_divide_10(x_data));
         }
-        else {
-            return this->m_integer < x.m_integer;
+        while (!this_digits.empty() or !x_digits.empty()) {
+            unsigned long this_digit = this_digits.empty() ? 0ul : this_digits.top();
+            unsigned long x_digit = x_digits.empty() ? 0ul : x_digits.top();
+            if (this_digit < x_digit) {
+                return this->m_integer.m_positive;
+            }
+            else if (this_digit > x_digit) {
+                return !this->m_integer.m_positive;
+            }
+            if (!this_digits.empty()) this_digits.pop();
+            if (!x_digits.empty()) x_digits.pop();
         }
+        return false;
     }
-    else if (this->is_positive()) return false;
-    else return true;
+    else return !this->m_integer.m_positive;
 }
 bool BigDecimal::operator>(BigDecimal const& x) const {
     if (this->is_zero()) {
-        if (x.is_positive()) return false;
-        else return true;
+        return x.is_negative();
     }
     if (x.is_zero()) {
-        if (this->is_positive()) return false;
-        else return true;
+        return this->m_integer.m_positive;
     }
-    if (this->is_positive() == x.is_positive()) {
-        std::size_t this_dec_dig = this->m_integer.get_decimal_digits();
-        std::size_t x_dec_dig = x.m_integer.get_decimal_digits();
-        if (this_dec_dig > x_dec_dig) {
-            return this->m_integer > x.m_integer * pow_10(this_dec_dig - x_dec_dig);
+    if (this->m_integer.m_positive == x.m_integer.m_positive) {
+        if (this->m_exponent < x.m_exponent) return !this->m_integer.m_positive;
+        else if (this->m_exponent > x.m_exponent) return this->m_integer.m_positive;
+        std::stack<unsigned long> this_digits, x_digits;
+        BigInteger::IntegerData this_data = this->m_integer.m_data;
+        BigInteger::IntegerData x_data = x.m_integer.m_data;
+        while (!BigInteger::bitset_is_zero(this_data)) {
+            this_digits.push(BigInteger::bitset_divide_10(this_data));
         }
-        else if (this_dec_dig < x_dec_dig) {
-            return this->m_integer * pow_10(x_dec_dig - this_dec_dig) > x.m_integer;
+        while (!BigInteger::bitset_is_zero(x_data)) {
+            x_digits.push(BigInteger::bitset_divide_10(x_data));
         }
-        else {
-            return this->m_integer > x.m_integer;
+        while (!this_digits.empty() or !x_digits.empty()) {
+            unsigned long this_digit = this_digits.empty() ? 0ul : this_digits.top();
+            unsigned long x_digit = x_digits.empty() ? 0ul : x_digits.top();
+            if (this_digit > x_digit) {
+                return this->m_integer.m_positive;
+            }
+            else if (this_digit < x_digit) {
+                return !this->m_integer.m_positive;
+            }
+            if (!this_digits.empty()) this_digits.pop();
+            if (!x_digits.empty()) x_digits.pop();
         }
+        return false;
     }
-    else if (this->is_negative()) return false;
-    else return true;
+    else return this->m_integer.m_positive;
 }
 bool BigDecimal::operator<=(BigDecimal const& x) const {
     if (this->is_zero()) {
-        if (!x.is_negative()) return true;
-        else return false;
+        return !x.is_negative();
     }
     if (x.is_zero()) {
-        if (this->is_positive()) return false;
-        else return true;
+        return !this->m_integer.m_positive;
     }
-    if (this->is_positive() == x.is_positive()) {
-        std::size_t this_dec_dig = this->m_integer.get_decimal_digits();
-        std::size_t x_dec_dig = x.m_integer.get_decimal_digits();
-        if (this_dec_dig > x_dec_dig) {
-            return this->m_integer <= x.m_integer * pow_10(this_dec_dig - x_dec_dig);
+    if (this->m_integer.m_positive == x.m_integer.m_positive) {
+        if (this->m_exponent < x.m_exponent) return this->m_integer.m_positive;
+        else if (this->m_exponent > x.m_exponent) return !this->m_integer.m_positive;
+        std::stack<unsigned long> this_digits, x_digits;
+        BigInteger::IntegerData this_data = this->m_integer.m_data;
+        BigInteger::IntegerData x_data = x.m_integer.m_data;
+        while (!BigInteger::bitset_is_zero(this_data)) {
+            this_digits.push(BigInteger::bitset_divide_10(this_data));
         }
-        else if (this_dec_dig < x_dec_dig) {
-            return this->m_integer * pow_10(x_dec_dig - this_dec_dig) <= x.m_integer;
+        while (!BigInteger::bitset_is_zero(x_data)) {
+            x_digits.push(BigInteger::bitset_divide_10(x_data));
         }
-        else {
-            return this->m_integer <= x.m_integer;
+        while (!this_digits.empty() or !x_digits.empty()) {
+            unsigned long this_digit = this_digits.empty() ? 0ul : this_digits.top();
+            unsigned long x_digit = x_digits.empty() ? 0ul : x_digits.top();
+            if (this_digit < x_digit) {
+                return this->m_integer.m_positive;
+            }
+            else if (this_digit > x_digit) {
+                return !this->m_integer.m_positive;
+            }
+            if (!this_digits.empty()) this_digits.pop();
+            if (!x_digits.empty()) x_digits.pop();
         }
+        return true;
     }
-    else if (this->is_positive()) return false;
-    else return true;
+    else return !this->m_integer.m_positive;
 }
 bool BigDecimal::operator>=(BigDecimal const& x) const {
     if (this->is_zero()) {
-        if (!x.is_negative()) return false;
-        else return true;
+        return !x.is_positive();
     }
     if (x.is_zero()) {
-        if (this->is_positive()) return false;
-        else return true;
+        return this->m_integer.m_positive;
     }
-    if (this->is_positive() == x.is_positive()) {
-        std::size_t this_dec_dig = this->m_integer.get_decimal_digits();
-        std::size_t x_dec_dig = x.m_integer.get_decimal_digits();
-        if (this_dec_dig > x_dec_dig) {
-            return this->m_integer >= x.m_integer * pow_10(this_dec_dig - x_dec_dig);
+    if (this->m_integer.m_positive == x.m_integer.m_positive) {
+        if (this->m_exponent < x.m_exponent) return !this->m_integer.m_positive;
+        else if (this->m_exponent > x.m_exponent) return this->m_integer.m_positive;
+        std::stack<unsigned long> this_digits, x_digits;
+        BigInteger::IntegerData this_data = this->m_integer.m_data;
+        BigInteger::IntegerData x_data = x.m_integer.m_data;
+        while (!BigInteger::bitset_is_zero(this_data)) {
+            this_digits.push(BigInteger::bitset_divide_10(this_data));
         }
-        else if (this_dec_dig < x_dec_dig) {
-            return this->m_integer * pow_10(x_dec_dig - this_dec_dig) >= x.m_integer;
+        while (!BigInteger::bitset_is_zero(x_data)) {
+            x_digits.push(BigInteger::bitset_divide_10(x_data));
         }
-        else {
-            return this->m_integer >= x.m_integer;
+        while (!this_digits.empty() or !x_digits.empty()) {
+            unsigned long this_digit = this_digits.empty() ? 0ul : this_digits.top();
+            unsigned long x_digit = x_digits.empty() ? 0ul : x_digits.top();
+            if (this_digit > x_digit) {
+                return this->m_integer.m_positive;
+            }
+            else if (this_digit < x_digit) {
+                return !this->m_integer.m_positive;
+            }
+            if (!this_digits.empty()) this_digits.pop();
+            if (!x_digits.empty()) x_digits.pop();
         }
+        return true;
     }
-    else if (this->is_negative()) return false;
-    else return true;
+    else return this->m_integer.m_positive;
 }
 bool BigDecimal::operator==(BigDecimal const& x) const {
     if (x.m_exponent != this->m_exponent) {
         return false;
     }
-    bool sig_equal;
-    std::size_t this_dec_dig = this->m_integer.get_decimal_digits();
-    std::size_t x_dec_dig = x.m_integer.get_decimal_digits();
-    if (this_dec_dig > x_dec_dig) {
-        sig_equal =  this->m_integer == x.m_integer * pow_10(this_dec_dig - x_dec_dig);
+    if (x.m_integer.is_zero()) {
+        return this->m_integer.is_zero();
     }
-    else if (this_dec_dig < x_dec_dig) {
-        sig_equal = this->m_integer * pow_10(x_dec_dig - this_dec_dig) == x.m_integer;
+    if (this->m_integer.is_zero()) {
+        return false;
     }
-    else {
-        sig_equal = this->m_integer == x.m_integer;
+    std::stack<unsigned long> this_digits, x_digits;
+    BigInteger::IntegerData this_data = this->m_integer.m_data;
+    BigInteger::IntegerData x_data = x.m_integer.m_data;
+    while (!BigInteger::bitset_is_zero(this_data)) {
+        this_digits.push(BigInteger::bitset_divide_10(this_data));
     }
-    return sig_equal;
+    while (!BigInteger::bitset_is_zero(x_data)) {
+        x_digits.push(BigInteger::bitset_divide_10(x_data));
+    }
+    while (!this_digits.empty() or !x_digits.empty()) {
+        unsigned long this_digit = this_digits.empty() ? 0ul : this_digits.top();
+        unsigned long x_digit = x_digits.empty() ? 0ul : x_digits.top();
+        if (this_digit != x_digit) {
+            return false;
+        }
+        if (!this_digits.empty()) this_digits.pop();
+        if (!x_digits.empty()) x_digits.pop();
+    }
+    return m_integer.m_positive == x.m_integer.m_positive;
 }
 bool BigDecimal::operator!=(BigDecimal const& x) const {
     if (x.m_exponent != this->m_exponent) {
         return true;
     }
-    bool sig_equal;
-    std::size_t this_dec_dig = this->m_integer.get_decimal_digits();
-    std::size_t x_dec_dig = x.m_integer.get_decimal_digits();
-    if (this_dec_dig > x_dec_dig) {
-        sig_equal =  this->m_integer == x.m_integer * pow_10(this_dec_dig - x_dec_dig);
+    if (x.m_integer.is_zero()) {
+        return !this->m_integer.is_zero();
     }
-    else if (this_dec_dig < x_dec_dig) {
-        sig_equal = this->m_integer * pow_10(x_dec_dig - this_dec_dig) == x.m_integer;
+    if (this->m_integer.is_zero()) {
+        return true;
     }
-    else {
-        sig_equal = this->m_integer == x.m_integer;
+    std::stack<unsigned long> this_digits, x_digits;
+    BigInteger::IntegerData this_data = this->m_integer.m_data;
+    BigInteger::IntegerData x_data = x.m_integer.m_data;
+    while (!BigInteger::bitset_is_zero(this_data)) {
+        this_digits.push(BigInteger::bitset_divide_10(this_data));
     }
-    return !sig_equal;
+    while (!BigInteger::bitset_is_zero(x_data)) {
+        x_digits.push(BigInteger::bitset_divide_10(x_data));
+    }
+    while (!this_digits.empty() or !x_digits.empty()) {
+        unsigned long this_digit = this_digits.empty() ? 0ul : this_digits.top();
+        unsigned long x_digit = x_digits.empty() ? 0ul : x_digits.top();
+        if (this_digit != x_digit) {
+            return true;
+        }
+        if (!this_digits.empty()) this_digits.pop();
+        if (!x_digits.empty()) x_digits.pop();
+    }
+    return m_integer.m_positive != x.m_integer.m_positive;
 }
 
 std::ostream& operator<<(std::ostream& os, BigDecimal const& x) {
@@ -973,13 +1050,13 @@ BigDecimal BigDecimal::sqrt(BigDecimal const& x) {
     long long sqrt_exponent = target.m_exponent < 0 ? -(-target.m_exponent / 2 + 1) : target.m_exponent / 2;
     target.m_exponent -= sqrt_exponent * 2;
     //Now target is not less than 1 and less than 100.
-    BigDecimal result = "10.0";
+    BigDecimal result = "1e+1";
     BigDecimal prev_result;
     do {
         prev_result = std::move(result);
         result = (prev_result + target / prev_result) / "2";
     }
-    while (result != prev_result);
+    while (result < prev_result);
     result.m_exponent += sqrt_exponent;
     return result;
 }
@@ -995,13 +1072,13 @@ BigDecimal BigDecimal::cbrt(BigDecimal const& x) {
         prev_result = std::move(result);
         result = (prev_result * "2" + target / (prev_result * prev_result)) / "3";
     }
-    while (result != prev_result);
+    while (result < prev_result);
     result.m_exponent += cbrt_exponent;
     return result;
 }
 BigDecimal BigDecimal::euler_number() {
     static std::size_t previous_precision = 0;
-    static BigDecimal euler_number;
+    static BigDecimal euler;
     if (previous_precision != BigDecimal::m_significant_digits) {
         previous_precision = BigDecimal::m_significant_digits;
         // Recursive formula: f(n)=1+f(n+1)/n
@@ -1020,16 +1097,69 @@ BigDecimal BigDecimal::euler_number() {
             number_of_terms_step = -error_term_func(number_of_terms, previous_precision) / error_term_func_deriv(number_of_terms);
             number_of_terms += number_of_terms_step;
         }
-        while (std::abs(number_of_terms_step) >= 10e-10); 
+        while (std::abs(number_of_terms_step) >= 1e-10); 
         BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
         n++;
-        euler_number = "0.0";
+        euler = "1.0";
         while (n --> BIG_INTEGER_ZERO) {
-            euler_number /= (n + BIG_INTEGER_ONE);
-            euler_number += BIG_INTEGER_ONE;
+            euler /= (n + BIG_INTEGER_ONE);
+            euler += "1";
         }
-        euler_number += BIG_INTEGER_ONE;
+        euler += "1";
     }
-    return euler_number;
+    return euler;
+}
+BigDecimal BigDecimal::exp(BigDecimal const& x) {
+    if (x.is_zero()) return "1.0";
+    if (x == "1") return euler_number();
+    if (x == "-1") return BigDecimal("1") / euler_number();
+    if (x.m_exponent < 0) {
+        double number_of_terms = 1e6;
+        // Recursive formula: f(n)=x+f(n+1)/n
+        // ln(x) approx. x*ln(x)-x
+        if (x.m_integer.m_positive) {
+            // Find n such that e/(n+1)! < 10e-{precision}
+            auto error_term_func = [](double x, std::size_t precision) {
+                return static_cast<double>(precision + 1) + std::log10(2.718281828459045) + (x - x * std::log(x)) / std::log(10.0);
+            };
+            auto error_term_func_deriv = [](double x) {
+                return -std::log10(x);
+            };
+            //Newton-Rhapson
+            double number_of_terms_step;
+            do {
+                number_of_terms_step = -error_term_func(number_of_terms, m_significant_digits) / error_term_func_deriv(number_of_terms);
+                number_of_terms += number_of_terms_step;
+            }
+            while (std::abs(number_of_terms_step) >= 1e-10); 
+        }
+        else {
+            // Find n such that 1/(n+1)! < 10e-{precision + 1}
+            auto error_term_func = [](double x, std::size_t precision) {
+                return static_cast<double>(precision + 1) + (x - x * std::log(x)) / std::log(10.0);
+            };
+            auto error_term_func_deriv = [](double x) {
+                return -std::log10(x);
+            };
+            //Newton-Rhapson
+            double number_of_terms_step;
+            do {
+                number_of_terms_step = -error_term_func(number_of_terms, m_significant_digits + 1) / error_term_func_deriv(number_of_terms);
+                number_of_terms += number_of_terms_step;
+            }
+            while (std::abs(number_of_terms_step) >= 1e-10); 
+        }
+        BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
+        n++;
+        BigDecimal result = "1";
+        while (--n > BIG_INTEGER_ZERO) {
+            result *= x;
+            result /= n;
+            result += "1";
+        }
+        return result;
+    }
+    BigDecimal half_exp = BigDecimal::exp(x / "2");
+    return half_exp * half_exp;
 }
 }
