@@ -718,21 +718,21 @@ BigDecimal& BigDecimal::operator/=(BigDecimal const& x) {
         this->m_integer *= pow_10(m_significant_digits);
         auto divisor = x.m_integer * pow_10(this_decimal_digits - x_decimal_digits);
         BigInteger remainder = this->m_integer.div(divisor);
-        if (remainder * BIG_INTEGER_TWO >= std::abs(divisor)) {
+        if (remainder * BIG_INTEGER_TWO >= BigInteger::abs(divisor)) {
             this->m_integer++;
         }
     }
     else if (this_decimal_digits < x_decimal_digits) {
         this->m_integer *= pow_10(m_significant_digits + (x_decimal_digits - this_decimal_digits));
         BigInteger remainder = this->m_integer.div(x.m_integer);
-        if (remainder * BIG_INTEGER_TWO >= std::abs(x.m_integer)) {
+        if (remainder * BIG_INTEGER_TWO >= BigInteger::abs(x.m_integer)) {
             this->m_integer++;
         }
     }
     else {
         this->m_integer *= pow_10(m_significant_digits);
         BigInteger remainder = this->m_integer.div(x.m_integer);
-        if (remainder * BIG_INTEGER_TWO >= std::abs(x.m_integer)) {
+        if (remainder * BIG_INTEGER_TWO >= BigInteger::abs(x.m_integer)) {
             this->m_integer++;
         }
     }
@@ -953,10 +953,83 @@ void BigDecimal::set_significant_digits_capacity(std::size_t len) {
 std::size_t BigDecimal::get_significant_digits_capacity() {
     return m_significant_digits;
 }
-}
 
-namespace std {
-umjc::BigDecimal abs(umjc::BigDecimal const& x) {
+BigDecimal BigDecimal::abs(BigDecimal const& x) {
     return x.is_negative() ? -x : x;
+}
+BigDecimal BigDecimal::pow(BigDecimal const& x, std::size_t n) {
+    if (n == 0) return "1.0";
+    if (n == 1) return x;
+    if (n == 2) return x * x;
+    if (n == 3) return x * x * x;
+    BigDecimal half_pow = BigDecimal::pow(x, n / 2);
+    if (n % 2 == 0) return half_pow * half_pow;
+    else return half_pow * half_pow * x;
+}
+BigDecimal BigDecimal::sqrt(BigDecimal const& x) {
+    if (x.is_negative()) throw std::domain_error("Cannot calculate square root of a negative number.");
+    if (x.is_zero()) return "0.0";
+    BigDecimal target = x;
+    long long sqrt_exponent = target.m_exponent < 0 ? -(-target.m_exponent / 2 + 1) : target.m_exponent / 2;
+    target.m_exponent -= sqrt_exponent * 2;
+    //Now target is not less than 1 and less than 100.
+    BigDecimal result = "10.0";
+    BigDecimal prev_result;
+    do {
+        prev_result = std::move(result);
+        result = (prev_result + target / prev_result) / "2";
+    }
+    while (result != prev_result);
+    result.m_exponent += sqrt_exponent;
+    return result;
+}
+BigDecimal BigDecimal::cbrt(BigDecimal const& x) {
+    if (x.is_zero()) return "0.0";
+    BigDecimal target = x;
+    long long cbrt_exponent = target.m_exponent < 0 ? -(-target.m_exponent / 3 + 1) : target.m_exponent / 3;
+    target.m_exponent -= cbrt_exponent * 3;
+    //Now target is not less than 1 and less than 1000.
+    BigDecimal result = x.is_positive() ? "10.0" : "-10.0";
+    BigDecimal prev_result;
+    do {
+        prev_result = std::move(result);
+        result = (prev_result * "2" + target / (prev_result * prev_result)) / "3";
+    }
+    while (result != prev_result);
+    result.m_exponent += cbrt_exponent;
+    return result;
+}
+BigDecimal BigDecimal::euler_number() {
+    static std::size_t previous_precision = 0;
+    static BigDecimal euler_number;
+    if (previous_precision != BigDecimal::m_significant_digits) {
+        previous_precision = BigDecimal::m_significant_digits;
+        // Recursive formula: f(n)=1+f(n+1)/n
+        // Find n such that e/(n+1)! < 10e-{precision + 1}
+        // ln(x) approx. x*ln(x)-x
+        auto error_term_func = [](double x, std::size_t precision) {
+            return static_cast<double>(precision + 1) + std::log10(2.718281828459045) + (x - x * std::log(x)) / std::log(10.0);
+        };
+        auto error_term_func_deriv = [](double x) {
+            return -std::log10(x);
+        };
+        //Newton-Rhapson
+        double number_of_terms = 1e6;
+        double number_of_terms_step;
+        do {
+            number_of_terms_step = -error_term_func(number_of_terms, previous_precision) / error_term_func_deriv(number_of_terms);
+            number_of_terms += number_of_terms_step;
+        }
+        while (std::abs(number_of_terms_step) >= 10e-10); 
+        BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
+        n++;
+        euler_number = "0.0";
+        while (n --> BIG_INTEGER_ZERO) {
+            euler_number /= (n + BIG_INTEGER_ONE);
+            euler_number += BIG_INTEGER_ONE;
+        }
+        euler_number += BIG_INTEGER_ONE;
+    }
+    return euler_number;
 }
 }

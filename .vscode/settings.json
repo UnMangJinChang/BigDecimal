@@ -69,6 +69,7 @@
         "fstream": "cpp",
         "__bit_reference": "cpp",
         "filesystem": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "__locale": "cpp"
     }
 }

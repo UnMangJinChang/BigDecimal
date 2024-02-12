@@ -97,8 +97,9 @@ public:
     IntegerData const& get_data() const;
     std::string to_string() const;
 
-    static BigInteger pow(BigInteger const& x, std::size_t n);
     BigInteger div(BigInteger const& y);
+    static BigInteger pow(BigInteger const& x, std::size_t n);
+    static BigInteger abs(BigInteger const& x);
     std::size_t get_decimal_digits() const;
 };
 
@@ -115,10 +116,6 @@ extern BigInteger const BIG_INTEGER_NINE;
 extern BigInteger const BIG_INTEGER_TEN;
 extern BigInteger const BIG_INTEGER_HUNDRED;
 extern BigInteger const BIG_INTEGER_THOUSAND;
-}
-
-namespace std {
-    umjc::BigInteger abs(umjc::BigInteger const& x);
 }
 
 #endif

@@ -827,6 +827,10 @@ BigInteger BigInteger::div(BigInteger const& y) {
     }
 }
 
+BigInteger BigInteger::abs(BigInteger const& x) {
+    return x.is_negative() ? -x : x;
+}
+
 std::size_t BigInteger::get_decimal_digits() const {
     if (this->is_zero()) {
         return 0;
@@ -838,11 +842,5 @@ std::size_t BigInteger::get_decimal_digits() const {
         decimal_digits++;
     }
     return decimal_digits;
-}
-}
-
-namespace std {
-umjc::BigInteger abs(umjc::BigInteger const& x) {
-    return x.is_negative() ? -x : x;
 }
 }

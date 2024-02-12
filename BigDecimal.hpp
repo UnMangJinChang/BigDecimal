@@ -62,19 +62,14 @@ static std::size_t get_significant_digits_capacity();
 std::string to_string(std::size_t precision) const;
 std::string to_scientific_string(std::size_t precision) const;
 std::string to_fixed_string(std::size_t fraction_digits) const;
+
+static BigDecimal abs(BigDecimal const& x);
+static BigDecimal pow(BigDecimal const& x, std::size_t n);
+static BigDecimal sqrt(BigDecimal const& x);
+static BigDecimal cbrt(BigDecimal const& x);
+static BigDecimal euler_number();
+
 };
 }
-
-namespace std {
-umjc::BigDecimal abs(umjc::BigDecimal const& x);
-// umjc::BigDecimal sin(umjc::BigDecimal const& x);
-// umjc::BigDecimal cos(umjc::BigDecimal const& x);
-// umjc::BigDecimal exp(umjc::BigDecimal const& x);
-// umjc::BigDecimal log(umjc::BigDecimal const& x);
-// umjc::BigDecimal sqrt(umjc::BigDecimal const& x);
-// umjc::BigDecimal cbrt(umjc::BigDecimal const& x);
-// umjc::BigDecimal hypot(umjc::BigDecimal const& x, umjc::BigDecimal const& y);
-// umjc::BigDecimal hypot(umjc::BigDecimal const& x, umjc::BigDecimal const& y, umjc::BigDecimal const& z);
-};
 
 #endif
