@@ -91,5 +91,9 @@ int main() {
     std::cout << umjc::BigDecimal::exp("7").to_string(250) << "\n";
     std::cout << "exp(-5) = \n";
     std::cout << umjc::BigDecimal::exp("-5").to_string(250) << "\n";
+    std::cout << "ln(6) = \n";
+    std::cout << umjc::BigDecimal::ln("6").to_string(250) << "\n";
+    std::cout << "ln(0.2) = \n";
+    std::cout << umjc::BigDecimal::ln("0.2").to_string(250) << "\n";
     return 0;
 }

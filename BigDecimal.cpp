@@ -1171,4 +1171,40 @@ BigDecimal BigDecimal::exp(BigDecimal const& x) {
     BigDecimal half_exp = BigDecimal::exp(x / "2");
     return half_exp * half_exp;
 }
+BigDecimal BigDecimal::ln(BigDecimal const& x) {
+    if (!x.is_positive()) throw std::domain_error("Logarithm of a negative number is not defined.");
+    if (x == "1") return "0";
+    if (x > "1") return -ln(BigDecimal("1") / x);
+    BigDecimal inv_e = BigDecimal("1") / euler_number();
+    BigDecimal result = "0";
+    BigDecimal new_x = x;
+    while (new_x < inv_e) {
+        result += "-1";
+        new_x *= euler_number();
+    }
+    new_x += "-1";
+    new_x = -new_x;
+    double number_of_terms = 1e6;
+    // Find n such that 1/(n+1)! < 10e-{precision + 1}
+    auto error_term_func = [](double x, std::size_t precision) {
+        return static_cast<double>(precision + 1) - (x + std::log(x)) / std::log(10.0);
+    };
+    auto error_term_func_deriv = [](double x) {
+        return -(1.0 + 1.0 / x) / std::log(10.0);
+    };
+    //Newton-Rhapson
+    double number_of_terms_step;
+    do {
+        number_of_terms_step = -error_term_func(number_of_terms, m_significant_digits + 1) / error_term_func_deriv(number_of_terms);
+        number_of_terms += number_of_terms_step;
+    }
+    while (std::abs(number_of_terms_step) >= 1e-10); 
+    BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
+    BigDecimal new_x_pow = new_x;
+    for (BigInteger i = BIG_INTEGER_ONE; i <= n; i++) {
+        result += -new_x_pow / i;
+        new_x_pow *= new_x;
+    }
+    return result;
+}
 }
