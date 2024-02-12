@@ -1132,6 +1132,15 @@ BigDecimal BigDecimal::exp(BigDecimal const& x) {
                 number_of_terms += number_of_terms_step;
             }
             while (std::abs(number_of_terms_step) >= 1e-10); 
+            BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
+            n++;
+            BigDecimal result = "1";
+            while (--n > BIG_INTEGER_ZERO) {
+                result *= x;
+                result /= n;
+                result += "1";
+            }
+            return result;
         }
         else {
             // Find n such that 1/(n+1)! < 10e-{precision + 1}
@@ -1148,16 +1157,16 @@ BigDecimal BigDecimal::exp(BigDecimal const& x) {
                 number_of_terms += number_of_terms_step;
             }
             while (std::abs(number_of_terms_step) >= 1e-10); 
+            BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
+            n++;
+            BigDecimal result = "1";
+            while (--n > BIG_INTEGER_ZERO) {
+                result *= -x;
+                result /= n;
+                result += "1";
+            }
+            return BigDecimal("1") / result;
         }
-        BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
-        n++;
-        BigDecimal result = "1";
-        while (--n > BIG_INTEGER_ZERO) {
-            result *= x;
-            result /= n;
-            result += "1";
-        }
-        return result;
     }
     BigDecimal half_exp = BigDecimal::exp(x / "2");
     return half_exp * half_exp;
