@@ -1176,35 +1176,21 @@ BigDecimal BigDecimal::ln(BigDecimal const& x) {
     if (x == "1") return "0";
     if (x > "1") return -ln(BigDecimal("1") / x);
     BigDecimal inv_e = BigDecimal("1") / euler_number();
-    BigDecimal result = "0";
     BigDecimal new_x = x;
+    BigInteger result_1 = "0";
     while (new_x < inv_e) {
-        result += "-1";
+        result_1--;
         new_x *= euler_number();
     }
-    new_x += "-1";
-    new_x = -new_x;
-    double number_of_terms = 1e6;
-    // Find n such that 1/(n+1)! < 10e-{precision + 1}
-    auto error_term_func = [](double x, std::size_t precision) {
-        return static_cast<double>(precision + 1) - (x + std::log(x)) / std::log(10.0);
-    };
-    auto error_term_func_deriv = [](double x) {
-        return -(1.0 + 1.0 / x) / std::log(10.0);
-    };
     //Newton-Rhapson
-    double number_of_terms_step;
+    BigDecimal result_2 = "0";
+    BigDecimal prev_result;
     do {
-        number_of_terms_step = -error_term_func(number_of_terms, m_significant_digits + 1) / error_term_func_deriv(number_of_terms);
-        number_of_terms += number_of_terms_step;
+        prev_result = std::move(result_2);
+        BigDecimal exp_result_2 = BigDecimal::exp(prev_result);
+        result_2 = prev_result + (new_x - exp_result_2) / (new_x + exp_result_2) * "2";
     }
-    while (std::abs(number_of_terms_step) >= 1e-10); 
-    BigInteger n = BigInteger(std::to_string(static_cast<int>(std::ceil(number_of_terms))));
-    BigDecimal new_x_pow = new_x;
-    for (BigInteger i = BIG_INTEGER_ONE; i <= n; i++) {
-        result += -new_x_pow / i;
-        new_x_pow *= new_x;
-    }
-    return result;
+    while (result_2 < prev_result);
+    return prev_result + result_1;
 }
 }
